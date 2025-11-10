@@ -4,9 +4,9 @@ spring:
   application:
     name: noyblog
   datasource:
-    url: jdbc:postgresql://192.168.1.102:5432/mydatabase
+    url: jdbc:postgresql://192.168.1.100:5432/blogdb
     username: grummans
-    password: 4634
+    password: WGEM1bUYD8nKMUd4
   banner:
     location: classpath:banner.txt
 
