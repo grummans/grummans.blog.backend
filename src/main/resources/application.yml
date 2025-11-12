@@ -4,11 +4,12 @@ spring:
   application:
     name: noyblog
   datasource:
-    url: jdbc:postgresql://192.168.1.100:5432/blogdb
+    url: jdbc:postgresql://100.64.0.1:5432/blogdb?currentSchema=blogdb
     username: grummans
     password: WGEM1bUYD8nKMUd4
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
   banner:
     location: classpath:banner.txt
-
 server:
   port: 8085
