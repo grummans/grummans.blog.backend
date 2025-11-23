@@ -9,7 +9,10 @@ spring:
     password: WGEM1bUYD8nKMUd4
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
   banner:
     location: classpath:banner.txt
 server:
   port: 8085
+  servlet:
+    context-path: /api

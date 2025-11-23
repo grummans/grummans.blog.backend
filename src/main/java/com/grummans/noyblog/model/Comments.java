@@ -14,7 +14,6 @@ public class Comments {
 
     @Id
     @Column(name = "id", nullable = false)
-    @NonNull
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private String id;
 
