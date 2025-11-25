@@ -10,6 +10,7 @@ import com.grummans.noyblog.repository.PostTagsRepository;
 import com.grummans.noyblog.repository.TagsRepository;
 import com.grummans.noyblog.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -42,20 +46,29 @@ public class PostService {
     public Page<PostDTO.Res> getAllPost(PostDTO.Req req, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        if (req.getTitle() != null && ! req.getTitle().isEmpty()) {
-            return postRepository.findByTitleContainingIgnoreCase(req.getTitle(), pageable).map(postMapper::toPostDTO);
+        Page<Posts> postsList;
+        if (req.getTitle() != null && !req.getTitle().isEmpty()) {
+            postsList = postRepository.findByTitleContainingIgnoreCase(req.getTitle(), pageable);
         } else {
-            return postRepository.findAll(pageable).map(postMapper::toPostDTO);
+            postsList = postRepository.findAll(pageable);
         }
+
+        return postsList.map(post -> {
+            PostDTO.Res postDTORes = postMapper.toPostDTO(post);
+            List<Integer> tagIds = post.getPostTags().stream()
+                    .map(pt -> pt.getTag().getId())
+                    .toList();
+            postDTORes.setTagId(tagIds);
+            return postDTORes;
+        });
     }
 
     @Transactional
-    public int createPost(PostDTO.Req req) {
+    public PostDTO.Res createPost(PostDTO.Req req) {
         Posts post = postMapper.toPost(req);
         int authorId = usersRepository.findIdByUsername(req.getAuthorUsername());
         post.setAuthorId(authorId);
         Posts savedPost = postRepository.save(post);
-        int postId = savedPost.getId();
         for (Integer tagId : req.getTagId()) {
 
             Tags tag = tagsRepository.findById(tagId)
@@ -66,7 +79,9 @@ public class PostService {
             postTag.setTag(tag);
             postTagsRepository.save(postTag);
         }
-        return postId;
+        PostDTO.Res postDTORes = postMapper.toPostDTO(savedPost);
+        postDTORes.setTagId(req.getTagId());
+        return postDTORes;
     }
 
 }
