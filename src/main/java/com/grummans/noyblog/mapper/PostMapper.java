@@ -18,6 +18,5 @@ public interface PostMapper {
     @Mapping(target = "updatedAt", ignore = true)
     Posts toPost(PostDTO.Req postDTO);
 
-    @Mapping(target = "tagId", ignore = true)
     PostDTO.Res toPostDTO(Posts post);
 }

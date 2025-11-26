@@ -11,7 +11,7 @@ import java.util.TimeZone;
  * This ensures consistency with the database timezone
  */
 @Configuration
-public class TimezoneConfig {
+public class TimezoneConfiguration {
 
     @PostConstruct
     public void init() {

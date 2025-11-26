@@ -1,12 +1,11 @@
-package com.grummans.noyblog.controller;
+package com.grummans.noyblog.controller.admin;
 
 import com.grummans.noyblog.configuration.ApiResponse;
 import com.grummans.noyblog.configuration.PageResponse;
 import com.grummans.noyblog.dto.PostDTO;
-import com.grummans.noyblog.services.PostService;
+import com.grummans.noyblog.services.admin.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

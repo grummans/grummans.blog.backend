@@ -1,6 +1,7 @@
 package com.grummans.noyblog.repository;
 
 import com.grummans.noyblog.model.PostTags;
+import com.grummans.noyblog.model.Tags;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,4 +13,6 @@ import java.util.Set;
 @Repository
 public interface PostTagsRepository extends JpaRepository<PostTags, Integer> {
 
+    @Query("SELECT pt.tag FROM PostTags pt WHERE pt.post.id = :postId")
+    List<Tags> findByPostId(@Param("postId") Integer postId);
 }

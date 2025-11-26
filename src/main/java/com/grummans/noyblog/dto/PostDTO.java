@@ -1,5 +1,8 @@
 package com.grummans.noyblog.dto;
 
+import com.grummans.noyblog.model.Categories;
+import com.grummans.noyblog.model.Tags;
+import com.grummans.noyblog.model.Users;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,11 +45,11 @@ public class PostDTO {
         private int readingTimeMinutes;
         private String updatedAt;
         private String status;
-        private int categoryId;
-        private List<Integer> tagId;
+        private CategoryDTO.CategorySimpleDTO category;
+        private List<TagDTO.TagSimpleDTO> tags;
         private String slug;
         private String metaTitle;
         private String metaDescription;
-        private String authorId;
+        private UserDTO.AuthorDTO author;
     }
 }

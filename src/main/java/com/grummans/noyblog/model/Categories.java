@@ -13,10 +13,9 @@ import lombok.*;
 public class Categories {
 
     @Id
-    @NonNull
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private String id;
+    private int id;
 
     @Column(name = "name", nullable = false)
     private String name;
