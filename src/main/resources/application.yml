@@ -16,3 +16,11 @@ server:
   port: 8085
   servlet:
     context-path: /api
+
+# MinIO configuration
+minio:
+  accessKey: grummans
+  secretKey: qLxNdEWJHiMBSSlh
+  bucketName: grummans-bucket
+  endpoint: https://minio.grummans.me
+
