@@ -10,7 +10,6 @@ import org.mapstruct.ReportingPolicy;
 public interface PostMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "contentHtml", ignore = true)
     @Mapping(target = "isFeatured", ignore = true)
     @Mapping(target = "viewCount", ignore = true)
     @Mapping(target = "publishedAt", ignore = true)
@@ -19,4 +18,6 @@ public interface PostMapper {
     Posts toPost(PostDTO.Req postDTO);
 
     PostDTO.Res toPostDTO(Posts post);
+
+    PostDTO.SimplePostDTO toSimplePostDTO(Posts post);
 }

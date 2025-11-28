@@ -79,6 +79,12 @@
 			<artifactId>okhttp</artifactId>
 			<version>4.12.0</version>
 		</dependency>
+		<!-- HTML to Markdown converter -->
+		<dependency>
+			<groupId>com.vladsch.flexmark</groupId>
+			<artifactId>flexmark-html2md-converter</artifactId>
+			<version>0.64.8</version>
+		</dependency>
 	</dependencies>
 
 	<build>

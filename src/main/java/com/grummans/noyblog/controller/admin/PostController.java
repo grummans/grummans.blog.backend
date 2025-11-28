@@ -7,6 +7,7 @@ import com.grummans.noyblog.services.admin.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/a/posts")
@@ -36,11 +37,33 @@ public class PostController {
     }
 
     @CrossOrigin
-    @PostMapping("/create")
-    public ApiResponse<PostDTO.Res> createPost(@RequestBody PostDTO.Req req) {
-        ApiResponse<PostDTO.Res> response = new ApiResponse<>();
+    @PostMapping(value = "/create", consumes = {"multipart/form-data"})
+    public ApiResponse<PostDTO.SimplePostDTO> createPost(
+            @RequestPart("post") PostDTO.Req req,
+            @RequestPart(value = "featuredImage", required = false) org.springframework.web.multipart.MultipartFile featuredImage) {
+        ApiResponse<PostDTO.SimplePostDTO> response = new ApiResponse<>();
         response.setCode(201);
-        response.setData(postService.createPost(req));
+        response.setData(postService.createPost(req, featuredImage));
+        return response;
+    }
+
+    @CrossOrigin
+    @GetMapping("/{postId}")
+    public ApiResponse<PostDTO.Res> getPostById(@PathVariable int postId) {
+        ApiResponse<PostDTO.Res> response = new ApiResponse<>();
+        response.setCode(200);
+        response.setMessage("Post details retrieved successfully");
+        response.setData(postService.detailPost(postId));
+        return response;
+    }
+
+    @CrossOrigin
+    @GetMapping("/{postId}/edit")
+    public ApiResponse<PostDTO.Res> getPostForEdit(@PathVariable int postId) {
+        ApiResponse<PostDTO.Res> response = new ApiResponse<>();
+        response.setCode(200);
+        response.setMessage("Post details for editing retrieved successfully");
+        response.setData(postService.detailPostForEdit(postId));
         return response;
     }
 }

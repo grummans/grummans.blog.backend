@@ -3,10 +3,7 @@ package com.grummans.noyblog.dto;
 import com.grummans.noyblog.model.Categories;
 import com.grummans.noyblog.model.Tags;
 import com.grummans.noyblog.model.Users;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,8 +16,9 @@ public class PostDTO {
     public static class Req {
         private String title;
         private String excerpt;
-        private String content;
+        private String content;        // HTML content from TipTap Editor (FE sends this)
         private String featuredImageUrl;
+        private boolean isFeatured;
         private String status;
         private int categoryId;
         private List<Integer> tagId;
@@ -42,6 +40,9 @@ public class PostDTO {
         private String title;
         private String excerpt;
         private int viewCount;
+        private String featuredImageUrl;
+        private String content;        // Markdown content (optional)
+        private String contentHtml;    // HTML content for display
         private int readingTimeMinutes;
         private String updatedAt;
         private String status;
@@ -51,5 +52,17 @@ public class PostDTO {
         private String metaTitle;
         private String metaDescription;
         private UserDTO.AuthorDTO author;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SimplePostDTO {
+        private int id;
+        private String title;
+        private String slug;
+        private String excerpt;
+        private String featuredImageUrl;
+        private String updatedAt;
     }
 }

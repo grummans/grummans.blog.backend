@@ -63,7 +63,7 @@ public class Posts {
     @Column (name = "status")
     private String status;
 
-    @Column (name = "is_featured")
+    @Column (name = "is_featured",columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean isFeatured;
 
     @Column (name = "view_count")
