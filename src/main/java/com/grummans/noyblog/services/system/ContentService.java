@@ -10,17 +10,24 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ContentService {
 
+    // Note: FlexmarkHtmlConverter is kept for future use if needed
+    // Currently we don't convert HTML to Markdown because TipTap Editor works with HTML
     private final FlexmarkHtmlConverter htmlToMdConverter = FlexmarkHtmlConverter.builder().build();
 
     /**
      * Process content from TipTap Editor (HTML) and prepare for database storage
      *
+     * DEPRECATED: This method is no longer used. We now save HTML directly without conversion.
+     * TipTap Editor works with HTML, so we keep HTML format for both editing and display.
+     *
      * @param htmlContent HTML content from TipTap Editor
      * @return ContentData containing both HTML and Markdown versions
      */
+    @Deprecated
     public ContentData processContent(String htmlContent) {
         if (htmlContent == null || htmlContent.trim().isEmpty()) {
-            return new ContentData(null, null);
+            // Return empty strings instead of null to avoid DB null issues
+            return new ContentData("", "");
         }
 
         // Sanitize HTML to prevent XSS attacks
@@ -35,8 +42,8 @@ public class ContentService {
     /**
      * Basic HTML sanitization (can be enhanced with libraries like OWASP Java HTML Sanitizer)
      */
-    private String sanitizeHtml(String html) {
-        if (html == null) return null;
+    public String sanitizeHtml(String html) {
+        if (html == null || html.trim().isEmpty()) return "";
 
         // Basic sanitization - remove dangerous elements/attributes
         // For production, consider using OWASP Java HTML Sanitizer

@@ -36,16 +36,16 @@ public class Posts {
     @GeneratedValue (strategy = jakarta.persistence.GenerationType.IDENTITY)
     private int id;
 
-    @Column (name = "title", nullable = false)
+    @Column (name = "title")
     private String title;
 
-    @Column (name = "slug", nullable = false, unique = true)
+    @Column (name = "slug")
     private String slug;
 
-    @Column (name = "content", nullable = false)
+    @Column (name = "content", columnDefinition = "TEXT")
     private String content;
 
-    @Column (name = "content_html")
+    @Column (name = "content_html", columnDefinition = "TEXT")
     private String contentHtml;
 
     @Column (name = "excerpt")
@@ -54,11 +54,11 @@ public class Posts {
     @Column (name = "featured_image_url")
     private String featuredImageUrl;
 
-    @Column (name = "author_id", nullable = false)
+    @Column (name = "author_id")
     private int authorId;
 
     @Column (name = "category_id")
-    private int categoryId;
+    private Integer categoryId;
 
     @Column (name = "status")
     private String status;

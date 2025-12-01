@@ -11,13 +11,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table
+@Table (name = "post_attachments")
 @Data
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PostAttachment {
+public class PostAttachments {
 
     @Id
     @Column(name = "id", nullable = false)
@@ -27,11 +27,11 @@ public class PostAttachment {
     @Column(name = "post_id", nullable = false)
     private int postId;
 
-    @Column(name = "original_file_name", nullable = false)
-    private String originalFileName;
+    @Column(name = "original_filename", nullable = false)
+    private String originalFilename;
 
-    @Column(name = "stored_file_name", nullable = false)
-    private String storedFileName;
+    @Column(name = "stored_filename", nullable = false)
+    private String storedFilename;
 
     @Column(name = "file_type", nullable = false)
     private String fileType;

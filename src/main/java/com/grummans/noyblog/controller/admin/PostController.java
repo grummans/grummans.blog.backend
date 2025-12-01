@@ -20,6 +20,7 @@ public class PostController {
     @CrossOrigin
     public ApiResponse<PageResponse<PostDTO.Res>> getAllPosts(
             @RequestParam(required = false) String title,
+            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
@@ -28,6 +29,7 @@ public class PostController {
 
         PostDTO.Req req = new PostDTO.Req();
         req.setTitle(title);
+        req.setStatus(status);
 
         Page<PostDTO.Res> postsPage = postService.getAllPost(req, pageNumber, size);
 
@@ -36,14 +38,76 @@ public class PostController {
         return response;
     }
 
+    /**
+     * Get all draft posts
+     */
+    @GetMapping("/drafts")
+    @CrossOrigin
+    public ApiResponse<PageResponse<PostDTO.Res>> getAllDrafts(
+            @RequestParam(required = false) String title,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        ApiResponse<PageResponse<PostDTO.Res>> response = new ApiResponse<>();
+        int pageNumber = page > 0 ? page - 1 : 0;
+
+        PostDTO.Req req = new PostDTO.Req();
+        req.setTitle(title);
+        req.setStatus("DRAFT");
+
+        Page<PostDTO.Res> postsPage = postService.getAllPost(req, pageNumber, size);
+
+        response.setCode(200);
+        response.setMessage("Draft posts retrieved successfully");
+        response.setData(new PageResponse<>(postsPage));
+        return response;
+    }
+
+    /**
+     * Create and publish a post directly
+     */
     @CrossOrigin
     @PostMapping(value = "/create", consumes = {"multipart/form-data"})
     public ApiResponse<PostDTO.SimplePostDTO> createPost(
             @RequestPart("post") PostDTO.Req req,
-            @RequestPart(value = "featuredImage", required = false) org.springframework.web.multipart.MultipartFile featuredImage) {
+            @RequestPart(value = "featuredImage", required = false) MultipartFile featuredImage) {
         ApiResponse<PostDTO.SimplePostDTO> response = new ApiResponse<>();
         response.setCode(201);
+        response.setMessage("Post created and published successfully");
         response.setData(postService.createPost(req, featuredImage));
+        return response;
+    }
+
+    /**
+     * Save post as draft (create new or update existing)
+     * - If req.id is null/0: Create new draft
+     * - If req.id exists: Update existing draft
+     */
+    @CrossOrigin
+    @PostMapping(value = "/save-draft", consumes = {"multipart/form-data"})
+    public ApiResponse<PostDTO.SimplePostDTO> saveDraft(
+            @RequestPart("post") PostDTO.Req req,
+            @RequestPart(value = "featuredImage", required = false) MultipartFile featuredImage) {
+        ApiResponse<PostDTO.SimplePostDTO> response = new ApiResponse<>();
+        PostDTO.SimplePostDTO savedDraft = postService.saveDraftPost(req, featuredImage);
+
+        boolean isUpdate = req.getId() != null && req.getId() > 0;
+        response.setCode(isUpdate ? 200 : 201);
+        response.setMessage(isUpdate ? "Draft updated successfully" : "Draft created successfully");
+        response.setData(savedDraft);
+        return response;
+    }
+
+    /**
+     * Publish a draft post
+     */
+    @CrossOrigin
+    @PostMapping("/{postId}/publish")
+    public ApiResponse<PostDTO.SimplePostDTO> publishDraft(@PathVariable int postId) {
+        ApiResponse<PostDTO.SimplePostDTO> response = new ApiResponse<>();
+        response.setCode(200);
+        response.setMessage("Draft published successfully");
+        response.setData(postService.publishDraft(postId));
         return response;
     }
 
@@ -64,6 +128,22 @@ public class PostController {
         response.setCode(200);
         response.setMessage("Post details for editing retrieved successfully");
         response.setData(postService.detailPostForEdit(postId));
+        return response;
+    }
+
+//    @CrossOrigin
+//    @PostMapping(value = "/save")
+//    public ApiResponse<PostDTO.SimplePostDTO> savePost() {
+//
+//    }
+
+    @CrossOrigin
+    @DeleteMapping("/{postId}")
+    public ApiResponse<Void> deletePost(@PathVariable int postId) {
+        ApiResponse<Void> response = new ApiResponse<>();
+        postService.deletePost(postId);
+        response.setCode(200);
+        response.setMessage("Post deleted successfully");
         return response;
     }
 }

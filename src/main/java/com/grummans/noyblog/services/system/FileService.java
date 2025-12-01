@@ -1,14 +1,12 @@
 package com.grummans.noyblog.services.system;
 
 import com.grummans.noyblog.exceptions.FileUploadException;
-import com.grummans.noyblog.model.PostAttachment;
+import com.grummans.noyblog.model.PostAttachments;
 import com.grummans.noyblog.repository.PostAttachmentRepository;
-import io.minio.BucketExistsArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.RemoveObjectArgs;
+import io.minio.*;
+import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FileService {
@@ -79,7 +78,7 @@ public class FileService {
      * @param file   The attachment file
      * @return PostAttachment entity
      */
-    public PostAttachment uploadPostAttachment(int postId, MultipartFile file) {
+    public PostAttachments uploadPostAttachment(int postId, MultipartFile file) {
         validateFile(file);
 
         String fileUUID = UUID.randomUUID().toString();
@@ -92,14 +91,15 @@ public class FileService {
         try {
             uploadToMinio(storagePath, file, "posts");
 
-            PostAttachment postAttachment = new PostAttachment();
+            PostAttachments postAttachment = new PostAttachments();
             postAttachment.setPostId(postId);
-            postAttachment.setOriginalFileName(file.getOriginalFilename());
-            postAttachment.setStoredFileName(storedFileName);
+            postAttachment.setOriginalFilename(file.getOriginalFilename());
+            postAttachment.setStoredFilename(storedFileName);
             postAttachment.setFileType(determineFileType(file.getContentType()));
             postAttachment.setMimeType(file.getContentType());
             postAttachment.setFileSize(file.getSize());
             postAttachment.setStoragePath(storagePath);
+            log.info("Saving attachment to DB: {}", postAttachment);
             return postAttachmentRepository.save(postAttachment);
         } catch (Exception e) {
             throw new FileUploadException("Failed to upload attachment: " + e.getMessage());
@@ -203,11 +203,11 @@ public class FileService {
 
                 // Copy object to new location
                 minioClient.copyObject(
-                        io.minio.CopyObjectArgs.builder()
+                        CopyObjectArgs.builder()
                                 .bucket("posts")
                                 .object(newObjectPath)
                                 .source(
-                                        io.minio.CopySource.builder()
+                                        CopySource.builder()
                                                 .bucket("posts")
                                                 .object(objectPath)
                                                 .build()
@@ -233,6 +233,61 @@ public class FileService {
     }
 
     /**
+     * Delete all files associated with a post from MinIO and DB
+     * This includes:
+     * - Featured image: /{postId}/featured/
+     * - Content files: /{postId}/content/
+     * - Attachments: /{postId}/attachments/
+     *
+     * @param postId The post ID
+     */
+    public void deletePostFile(int postId) {
+        try {
+            // Path prefix for this post (without bucket name)
+            String folderPrefix = postId + "/";
+            log.info("[MinIO] Deleting all files under: posts/{}", folderPrefix);
+
+            // List all objects with this prefix
+            Iterable<Result<Item>> results = minioClient.listObjects(
+                    ListObjectsArgs.builder()
+                            .bucket("posts")
+                            .prefix(folderPrefix)
+                            .recursive(true)
+                            .build()
+            );
+
+            // Delete each object
+            int deletedCount = 0;
+            for (Result<Item> result : results) {
+                Item item = result.get();
+                String objectName = item.objectName();
+
+                log.debug("[MinIO] Deleting object: {}", objectName);
+                minioClient.removeObject(
+                        RemoveObjectArgs.builder()
+                                .bucket("posts")
+                                .object(objectName)
+                                .build()
+                );
+                deletedCount++;
+            }
+
+            log.info("[MinIO] Successfully deleted {} file(s) for post {}", deletedCount, postId);
+
+            // Also delete attachment records from database
+            List<PostAttachments> attachments = postAttachmentRepository.findByPostId(postId);
+            if (!attachments.isEmpty()) {
+                postAttachmentRepository.deleteAll(attachments);
+                log.info("[DB] Deleted {} attachment record(s) from database", attachments.size());
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to delete post files for postId {}: {}", postId, e.getMessage(), e);
+            throw new FileUploadException("Failed to delete post files: " + e.getMessage());
+        }
+    }
+
+    /**
      * @deprecated Use moveContentFilesToPost() instead
      */
     @Deprecated
@@ -240,22 +295,47 @@ public class FileService {
         moveContentFilesToPost(postId, imageUrls);
     }
 
-    public void deleteFile(int attachmentId) {
+    /**
+     * Get all attachments for a specific post
+     *
+     * @param postId The post ID
+     * @return List of PostAttachment entities
+     */
+    public List<PostAttachments> getPostAttachments(int postId) {
+        return postAttachmentRepository.findByPostId(postId);
+    }
 
-        PostAttachment postAttachment = postAttachmentRepository.findById(attachmentId)
-                .orElseThrow(() -> new FileUploadException("Attachment not found"));
+    /**
+     * Delete a post attachment (removes from both DB and MinIO)
+     *
+     * @param attachmentId The attachment ID to delete
+     */
+    public void deleteAttachment(int attachmentId) {
+        PostAttachments postAttachment = postAttachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new FileUploadException("Attachment not found with id: " + attachmentId));
 
         try {
+            // Delete from MinIO storage
             minioClient.removeObject(
                     RemoveObjectArgs.builder()
                             .bucket("posts")
                             .object(postAttachment.getStoragePath())
                             .build()
             );
+
+            // Delete from database
             postAttachmentRepository.deleteById(attachmentId);
         } catch (Exception e) {
-            throw new FileUploadException("Failed to delete file: " + e.getMessage());
+            throw new FileUploadException("Failed to delete attachment: " + e.getMessage());
         }
+    }
+
+    /**
+     * @deprecated Use deleteAttachment() instead
+     */
+    @Deprecated
+    public void deleteFile(int attachmentId) {
+        deleteAttachment(attachmentId);
     }
 
     // Validate the uploaded file
@@ -332,17 +412,17 @@ public class FileService {
      */
     private String determineFileType(String contentType) {
         if (contentType == null) {
-            return "unknown";
+            return "UNKNOWN";
         } else if (contentType.startsWith("image/")) {
-            return "image";
+            return "IMAGE";
         } else if (contentType.startsWith("video/")) {
-            return "video";
+            return "VIDEO";
         } else if (contentType.startsWith("audio/")) {
-            return "audio";
+            return "AUDIO";
         } else if (contentType.equals("application/pdf")) {
-            return "document";
+            return "DOCUMENT";
         } else {
-            return "other";
+            return "OTHER";
         }
     }
 

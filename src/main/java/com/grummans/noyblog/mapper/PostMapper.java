@@ -17,6 +17,9 @@ public interface PostMapper {
     @Mapping(target = "updatedAt", ignore = true)
     Posts toPost(PostDTO.Req postDTO);
 
+    // Map Posts entity to Response DTO
+    // Note: content (markdown) is ignored by default, only contentHtml is mapped for display
+    @Mapping(target = "content", ignore = true)  // Don't map markdown content to response
     PostDTO.Res toPostDTO(Posts post);
 
     PostDTO.SimplePostDTO toSimplePostDTO(Posts post);

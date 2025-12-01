@@ -1,8 +1,6 @@
 package com.grummans.noyblog.dto;
 
-import com.grummans.noyblog.model.Categories;
-import com.grummans.noyblog.model.Tags;
-import com.grummans.noyblog.model.Users;
+import com.grummans.noyblog.model.PostAttachments;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -14,6 +12,7 @@ public class PostDTO {
     @Data
     @NoArgsConstructor
     public static class Req {
+        private Integer id;            // Post ID (for update draft)
         private String title;
         private String excerpt;
         private String content;        // HTML content from TipTap Editor (FE sends this)
@@ -41,8 +40,8 @@ public class PostDTO {
         private String excerpt;
         private int viewCount;
         private String featuredImageUrl;
-        private String content;        // Markdown content (optional)
-        private String contentHtml;    // HTML content for display
+        private String content;        // Markdown content (NOT returned in API - ignored by mapper)
+        private String contentHtml;    // HTML content for display (this is what FE receives)
         private int readingTimeMinutes;
         private String updatedAt;
         private String status;
@@ -52,6 +51,7 @@ public class PostDTO {
         private String metaTitle;
         private String metaDescription;
         private UserDTO.AuthorDTO author;
+        private List<PostAttachments> attachments; // Separate attachment files (not inline content)
     }
 
     @Data
