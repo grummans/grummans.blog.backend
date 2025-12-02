@@ -15,7 +15,8 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @GetMapping("/list")
+    @CrossOrigin
+    @GetMapping()
     public ApiResponse<List<CategoryDTO.CategorySimpleDTO>> getAllCategories() {
 
         ApiResponse<List<CategoryDTO.CategorySimpleDTO>> response = new ApiResponse<>();
@@ -25,8 +26,9 @@ public class CategoryController {
         return response;
     }
 
+    @CrossOrigin
     @PostMapping("/create")
-    public ApiResponse<CategoryDTO.CategorySimpleDTO> createCategory(CategoryDTO.Req req) {
+    public ApiResponse<CategoryDTO.CategorySimpleDTO> createCategory(@RequestBody CategoryDTO.Req req) {
         ApiResponse<CategoryDTO.CategorySimpleDTO> response = new ApiResponse<>();
         response.setCode(200);
         response.setData(categoryService.createCategory(req));
@@ -34,15 +36,27 @@ public class CategoryController {
         return response;
     }
 
-    @PutMapping("/update")
-    public ApiResponse<CategoryDTO.CategorySimpleDTO> updateCategory(CategoryDTO.Req req) {
+    @CrossOrigin
+    @GetMapping("/{categoryId}")
+    public ApiResponse<CategoryDTO.Res> getCategory(@PathVariable Integer categoryId) {
+        ApiResponse<CategoryDTO.Res> response = new ApiResponse<>();
+        response.setCode(200);
+        response.setData(categoryService.getDetailCategory(categoryId));
+        response.setMessage("success");
+        return response;
+    }
+
+    @CrossOrigin
+    @PutMapping("/{categoryId}/update")
+    public ApiResponse<CategoryDTO.CategorySimpleDTO> updateCategory(@PathVariable int categoryId, @RequestBody CategoryDTO.Req req) {
         ApiResponse<CategoryDTO.CategorySimpleDTO> response = new ApiResponse<>();
         response.setCode(200);
-        response.setData(categoryService.updateCategory(req));
+        response.setData(categoryService.updateCategory(categoryId, req));
         response.setMessage("Category updated successfully");
         return response;
     }
 
+    @CrossOrigin
     @DeleteMapping("/{categoryId}")
     public ApiResponse<Void> deleteCategory(@PathVariable int categoryId) {
         ApiResponse<Void> response = new ApiResponse<>();

@@ -27,4 +27,25 @@ public class TagService {
         Tags savedTag = tagsRepository.save(tags);
         return tagMapper.toTagSimpleDTO(savedTag);
     }
+
+    public TagDTO.TagSimpleDTO getDetailTag(int tagId) {
+        Tags tag = tagsRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException("Tag not found with id: " + tagId));
+        return tagMapper.toTagSimpleDTO(tag);
+    }
+
+    public TagDTO.TagSimpleDTO updateTag(int tagId, TagDTO.Req req) {
+        Tags tag = tagsRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException("Tag not found with id: " + tagId));
+        tag.setName(req.getName());
+        tag.setSlug(req.getSlug());
+        Tags updatedTag = tagsRepository.save(tag);
+        return tagMapper.toTagSimpleDTO(updatedTag);
+    }
+
+    public void deleteTag(int tagId) {
+        Tags tag = tagsRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException("Tag not found with id: " + tagId));
+        tagsRepository.delete(tag);
+    }
 }

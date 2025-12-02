@@ -29,8 +29,19 @@ public class CategoryService {
         return categoryMapper.toCategorySimpleDTO(savedCategory);
     }
 
-    public CategoryDTO.CategorySimpleDTO updateCategory(CategoryDTO.Req req) {
-        Categories category = categoryMapper.toCategory(req);
+    public CategoryDTO.Res getDetailCategory(int categoryId) {
+        Categories category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
+        return categoryMapper.toCategoryRes(category);
+    }
+
+    public CategoryDTO.CategorySimpleDTO updateCategory(int categoryId, CategoryDTO.Req req) {
+        Categories category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
+        category.setName(req.getName());
+        category.setSlug(req.getSlug());
+        category.setDescription(req.getDescription());
+        category.setColor(req.getColor());
         Categories updatedCategory = categoryRepository.save(category);
         return categoryMapper.toCategorySimpleDTO(updatedCategory);
     }
