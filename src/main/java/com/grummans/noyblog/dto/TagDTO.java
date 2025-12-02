@@ -9,6 +9,14 @@ public class TagDTO {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    public  static class Req {
+        private String name;
+        private String slug;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class TagSimpleDTO {
         private int id;
         private String name;

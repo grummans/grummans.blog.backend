@@ -9,4 +9,5 @@ public interface CategoryMapper {
 
     CategoryDTO.CategorySimpleDTO toCategorySimpleDTO(Categories category);
 
+    Categories toCategory(CategoryDTO.Req category);
 }

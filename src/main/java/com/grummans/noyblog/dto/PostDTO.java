@@ -1,5 +1,6 @@
 package com.grummans.noyblog.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.grummans.noyblog.model.PostAttachments;
 import lombok.*;
 
@@ -17,7 +18,8 @@ public class PostDTO {
         private String excerpt;
         private String content;        // HTML content from TipTap Editor (FE sends this)
         private String featuredImageUrl;
-        private boolean isFeatured;
+        @JsonProperty("isFeatured")
+        private boolean isFeatured;    // Need @JsonProperty due to Lombok boolean naming convention
         private String status;
         private int categoryId;
         private List<Integer> tagId;
@@ -39,6 +41,8 @@ public class PostDTO {
         private String title;
         private String excerpt;
         private int viewCount;
+        @JsonProperty("isFeatured")
+        private boolean isFeatured;
         private String featuredImageUrl;
         private String content;        // Markdown content (NOT returned in API - ignored by mapper)
         private String contentHtml;    // HTML content for display (this is what FE receives)

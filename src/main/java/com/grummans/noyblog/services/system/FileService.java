@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -168,13 +169,17 @@ public class FileService {
     /**
      * Move content files (images, documents, archives, etc.) from temp folder to post folder after post is created
      * This method should be called after post is saved
+     * Returns a map of old URLs to new URLs for content replacement
      *
      * @param postId   The post ID
      * @param fileUrls List of file URLs in the content
+     * @return Map of old URL → new URL
      */
-    public void moveContentFilesToPost(int postId, List<String> fileUrls) {
+    public Map<String, String> moveContentFilesToPost(int postId, List<String> fileUrls) {
+        Map<String, String> urlMapping = new java.util.HashMap<>();
+
         if (fileUrls == null || fileUrls.isEmpty()) {
-            return;
+            return urlMapping;
         }
 
         for (String fileUrl : fileUrls) {
@@ -197,9 +202,9 @@ public class FileService {
                 // New path (without bucket prefix): {postId}/content/{filename}
                 String newObjectPath = String.format("%d/content/%s", postId, fileName);
 
-                System.out.println("[MinIO] Moving file:");
-                System.out.println("[MinIO] From: " + objectPath);
-                System.out.println("[MinIO] To: " + newObjectPath);
+                log.info("[MinIO] Moving file:");
+                log.info("[MinIO] From: {}", objectPath);
+                log.info("[MinIO] To: {}", newObjectPath);
 
                 // Copy object to new location
                 minioClient.copyObject(
@@ -223,13 +228,48 @@ public class FileService {
                                 .build()
                 );
 
-                System.out.println("[MinIO] File moved successfully");
+                // Generate new URL
+                String newUrl = generateFileUrl("posts/" + newObjectPath);
+
+                // Store mapping: old URL → new URL
+                urlMapping.put(fileUrl, newUrl);
+
+                log.info("[MinIO] File moved successfully: {} → {}", fileUrl, newUrl);
 
             } catch (Exception e) {
                 // Log error but don't throw - allow post creation to succeed
-                System.err.println("Failed to move content file: " + e.getMessage());
+                log.error("Failed to move content file: {}", e.getMessage());
             }
         }
+
+        return urlMapping;
+    }
+
+    /**
+     * Update HTML content by replacing old file URLs with new URLs
+     * Used after moving files from temp to post folder
+     *
+     * @param htmlContent Original HTML content with temp URLs
+     * @param urlMapping  Map of old URL → new URL
+     * @return Updated HTML content with new URLs
+     */
+    public String updateContentUrls(String htmlContent, java.util.Map<String, String> urlMapping) {
+        if (htmlContent == null || htmlContent.isEmpty() || urlMapping == null || urlMapping.isEmpty()) {
+            return htmlContent;
+        }
+
+        String updatedContent = htmlContent;
+
+        for (java.util.Map.Entry<String, String> entry : urlMapping.entrySet()) {
+            String oldUrl = entry.getKey();
+            String newUrl = entry.getValue();
+
+            // Replace all occurrences of old URL with new URL
+            updatedContent = updatedContent.replace(oldUrl, newUrl);
+        }
+
+        log.info("[Content] Updated {} URL(s) in content", urlMapping.size());
+        return updatedContent;
     }
 
     /**
@@ -336,6 +376,62 @@ public class FileService {
     @Deprecated
     public void deleteFile(int attachmentId) {
         deleteAttachment(attachmentId);
+    }
+
+    /**
+     * Delete a file from MinIO by its URL
+     * Extracts bucket and object name from URL and deletes the file
+     *
+     * @param fileUrl Full URL of the file (e.g., <a href="https://minioconsole.grummans.me/posts/123/featured/file.jpg">...</a>)
+     */
+    public void deleteFileByUrl(String fileUrl) {
+        if (fileUrl == null || fileUrl.trim().isEmpty()) {
+            log.warn("[MinIO] Cannot delete file: URL is null or empty");
+            return;
+        }
+
+        try {
+            // Extract bucket and object path from URL
+            // URL format: https://minioconsole.grummans.me/BUCKET/OBJECT_PATH
+            // Example: https://minioconsole.grummans.me/posts/123/featured/file.jpg
+            //   → bucket: "posts"
+            //   → object: "123/featured/file.jpg"
+
+            String urlPath = fileUrl;
+
+            // Remove protocol and domain
+            if (urlPath.contains("://")) {
+                urlPath = urlPath.substring(urlPath.indexOf("://") + 3); // Remove "https://" or "http://"
+            }
+            if (urlPath.contains("/")) {
+                urlPath = urlPath.substring(urlPath.indexOf("/") + 1); // Remove domain
+            }
+
+            // Extract bucket (first segment) and object path (rest)
+            String[] parts = urlPath.split("/", 2);
+            if (parts.length < 2) {
+                log.error("[MinIO] Invalid file URL format: {}", fileUrl);
+                return;
+            }
+
+            String bucket = parts[0];
+            String objectName = parts[1];
+
+            log.info("[MinIO] Deleting file from bucket '{}': {}", bucket, objectName);
+
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(bucket)
+                            .object(objectName)
+                            .build()
+            );
+
+            log.info("[MinIO] Successfully deleted file: {}", fileUrl);
+
+        } catch (Exception e) {
+            log.error("[MinIO] Failed to delete file by URL: {}", fileUrl, e);
+            // Don't throw exception - continue with other operations
+        }
     }
 
     // Validate the uploaded file

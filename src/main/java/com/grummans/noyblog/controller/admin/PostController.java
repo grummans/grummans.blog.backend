@@ -64,24 +64,10 @@ public class PostController {
     }
 
     /**
-     * Create and publish a post directly
-     */
-    @CrossOrigin
-    @PostMapping(value = "/create", consumes = {"multipart/form-data"})
-    public ApiResponse<PostDTO.SimplePostDTO> createPost(
-            @RequestPart("post") PostDTO.Req req,
-            @RequestPart(value = "featuredImage", required = false) MultipartFile featuredImage) {
-        ApiResponse<PostDTO.SimplePostDTO> response = new ApiResponse<>();
-        response.setCode(201);
-        response.setMessage("Post created and published successfully");
-        response.setData(postService.createPost(req, featuredImage));
-        return response;
-    }
-
-    /**
      * Save post as draft (create new or update existing)
      * - If req.id is null/0: Create new draft
      * - If req.id exists: Update existing draft
+     * - Allows incomplete data (category, tags, content can be null/empty)
      */
     @CrossOrigin
     @PostMapping(value = "/save-draft", consumes = {"multipart/form-data"})
@@ -99,15 +85,25 @@ public class PostController {
     }
 
     /**
-     * Publish a draft post
+     * Publish a post (create new OR publish existing draft)
+     * - If req.id is null/0: Create NEW post and publish directly
+     * - If req.id exists: Update DRAFT and publish
+     * - Requires complete post data (title, slug, category, tags, content)
+     * - Validates all required fields before publishing
      */
     @CrossOrigin
-    @PostMapping("/{postId}/publish")
-    public ApiResponse<PostDTO.SimplePostDTO> publishDraft(@PathVariable int postId) {
+    @PostMapping(value = "/publish", consumes = {"multipart/form-data"})
+    public ApiResponse<PostDTO.SimplePostDTO> publishPost(
+            @RequestPart("post") PostDTO.Req req,
+            @RequestPart(value = "featuredImage", required = false) MultipartFile featuredImage) {
         ApiResponse<PostDTO.SimplePostDTO> response = new ApiResponse<>();
-        response.setCode(200);
-        response.setMessage("Draft published successfully");
-        response.setData(postService.publishDraft(postId));
+        boolean isUpdate = req.getId() != null && req.getId() > 0;
+
+        PostDTO.SimplePostDTO publishedPost = postService.saveAndPublishPost(req, featuredImage);
+
+        response.setCode(isUpdate ? 200 : 201);
+        response.setMessage(isUpdate ? "Draft published successfully" : "Post created and published successfully");
+        response.setData(publishedPost);
         return response;
     }
 
@@ -131,11 +127,27 @@ public class PostController {
         return response;
     }
 
-//    @CrossOrigin
-//    @PostMapping(value = "/save")
-//    public ApiResponse<PostDTO.SimplePostDTO> savePost() {
-//
-//    }
+    /**
+     * Update an already published post
+     * - Only works for posts with status = PUBLISHED
+     * - Validates all required fields
+     * - Updates content, tags, category, featured image
+     * - Keeps publishedAt, updates updatedAt
+     */
+    @CrossOrigin
+    @PutMapping(value = "/{postId}", consumes = {"multipart/form-data"})
+    public ApiResponse<PostDTO.SimplePostDTO> updatePublishedPost(
+            @PathVariable int postId,
+            @RequestPart("post") PostDTO.Req req,
+            @RequestPart(value = "featuredImage", required = false) MultipartFile featuredImage) {
+        ApiResponse<PostDTO.SimplePostDTO> response = new ApiResponse<>();
+        PostDTO.SimplePostDTO updatedPost = postService.updatePublishedPost(postId, req, featuredImage);
+
+        response.setCode(200);
+        response.setMessage("Post updated successfully");
+        response.setData(updatedPost);
+        return response;
+    }
 
     @CrossOrigin
     @DeleteMapping("/{postId}")
