@@ -14,19 +14,19 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 @Entity
-@Table (name = "post_tags")
+@Table(name = "post_tags")
 @Data
 @IdClass(PostTagId.class)
 public class PostTags {
 
     @Id
     @JoinColumn(name = "post_id")
-    @ManyToOne (fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Posts post;
 
     @Id
     @JoinColumn(name = "tag_id")
-    @ManyToOne (fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Tags tag;
 
 }

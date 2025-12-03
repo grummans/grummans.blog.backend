@@ -118,7 +118,7 @@ public class PostService {
      * <p>
      * Drafts can be saved partially (e.g., without tags, category, etc.)
      *
-     * @param req PostDTO.Req with draft data
+     * @param req           PostDTO.Req with draft data
      * @param featuredImage Optional featured image
      * @return Saved draft post
      */
@@ -232,7 +232,7 @@ public class PostService {
      * - Validates all required fields before publishing
      * - Handles featured image upload and content file migration
      *
-     * @param req PostDTO.Req with complete post data (with or without ID)
+     * @param req           PostDTO.Req with complete post data (with or without ID)
      * @param featuredImage Optional featured image
      * @return Published post
      */
@@ -348,8 +348,8 @@ public class PostService {
      * - Updates content, tags, category, featured image, etc.
      * - Keeps publishedAt date, updates updatedAt automatically
      *
-     * @param postId Post ID to update
-     * @param req PostDTO.Req with updated post data
+     * @param postId        Post ID to update
+     * @param req           PostDTO.Req with updated post data
      * @param featuredImage Optional new featured image
      * @return Updated post
      */
@@ -480,6 +480,7 @@ public class PostService {
 
     /**
      * Common method to get post detail (used for both display and editing)
+     *
      * @param postId The post ID
      * @return PostDTO.Res with detailed post data
      */

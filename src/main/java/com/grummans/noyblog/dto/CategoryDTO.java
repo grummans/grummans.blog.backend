@@ -33,5 +33,6 @@ public class CategoryDTO {
         private int id;
         private String name;
         private String slug;
+        private int postCount;
     }
 }

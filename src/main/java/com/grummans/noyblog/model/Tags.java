@@ -14,13 +14,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table (name = "tags")
+@Table(name = "tags")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EntityListeners (AuditingEntityListener.class)
+@EntityListeners(AuditingEntityListener.class)
 public class Tags {
 
     @Id
@@ -28,17 +28,17 @@ public class Tags {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column (name = "name", nullable = false, unique = true)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @Column (name = "slug", nullable = false, unique = true)
+    @Column(name = "slug", nullable = false, unique = true)
     private String slug;
 
     @CreatedDate
-    @Column (name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany (mappedBy = "tag")
+    @OneToMany(mappedBy = "tag")
     private Set<PostTags> postTags = new HashSet<>();
 
 }

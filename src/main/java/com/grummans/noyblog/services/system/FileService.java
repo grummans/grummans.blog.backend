@@ -3,10 +3,12 @@ package com.grummans.noyblog.services.system;
 import com.grummans.noyblog.exceptions.FileUploadException;
 import com.grummans.noyblog.model.PostAttachments;
 import com.grummans.noyblog.repository.PostAttachmentRepository;
+
 import io.minio.*;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,7 +23,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class FileService {
-
     @Value("${minio.endpoint}")
     private String minioEndpoint;
 
@@ -33,7 +34,8 @@ public class FileService {
             Arrays.asList(".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp", ".ico");
 
     private static final List<String> ALLOWED_DOCUMENT_EXTENSIONS =
-            Arrays.asList(".pdf", ".doc", ".docx", ".txt", ".md", ".xls", ".xlsx", ".ppt", ".pptx", ".odt", ".rtf");
+            Arrays.asList(".pdf", ".doc", ".docx", ".txt", ".md", ".xls", ".xlsx", ".ppt", ".pptx",
+                    ".odt", ".rtf");
 
     private static final List<String> ALLOWED_ARCHIVE_EXTENSIONS =
             Arrays.asList(".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz");
@@ -42,8 +44,11 @@ public class FileService {
             Arrays.asList(".json", ".xml", ".yaml", ".yml", ".sql", ".csv");
 
     private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
+
     private static final long MAX_DOCUMENT_SIZE = 20 * 1024 * 1024; // 20 MB
+
     private static final long MAX_ARCHIVE_SIZE = 100 * 1024 * 1024; // 100 MB
+
     private static final long MAX_CODE_SIZE = 5 * 1024 * 1024; // 5 MB
 
     /**
@@ -133,9 +138,9 @@ public class FileService {
     }
 
     /**
-     * Upload inline file/image for TipTap Editor content (when post doesn't exist yet)
-     * Files are stored in temp folder first, then moved to post folder after post is created
-     * Supports: images, documents, archives (zip/rar), code files
+     * Upload inline file/image for TipTap Editor content (when post doesn't exist yet) Files are stored in temp folder
+     * first, then moved to post folder after post is created Supports: images, documents, archives (zip/rar), code
+     * files
      *
      * @param file The file to upload
      * @return The public URL of the uploaded file
@@ -167,9 +172,8 @@ public class FileService {
     }
 
     /**
-     * Move content files (images, documents, archives, etc.) from temp folder to post folder after post is created
-     * This method should be called after post is saved
-     * Returns a map of old URLs to new URLs for content replacement
+     * Move content files (images, documents, archives, etc.) from temp folder to post folder after post is created This
+     * method should be called after post is saved Returns a map of old URLs to new URLs for content replacement
      *
      * @param postId   The post ID
      * @param fileUrls List of file URLs in the content
@@ -189,7 +193,8 @@ public class FileService {
                 String storagePath = fileUrl.replace(minioEndpoint + "/", "");
 
                 // Only process temp files
-                if (!storagePath.startsWith("posts/temp/content-files/") && !storagePath.startsWith("posts/temp/content-images/")) {
+                if (!storagePath.startsWith("posts/temp/content-files/") && !storagePath.startsWith(
+                        "posts/temp/content-images/")) {
                     continue;
                 }
 
@@ -235,7 +240,6 @@ public class FileService {
                 urlMapping.put(fileUrl, newUrl);
 
                 log.info("[MinIO] File moved successfully: {} → {}", fileUrl, newUrl);
-
             } catch (Exception e) {
                 // Log error but don't throw - allow post creation to succeed
                 log.error("Failed to move content file: {}", e.getMessage());
@@ -246,15 +250,15 @@ public class FileService {
     }
 
     /**
-     * Update HTML content by replacing old file URLs with new URLs
-     * Used after moving files from temp to post folder
+     * Update HTML content by replacing old file URLs with new URLs Used after moving files from temp to post folder
      *
      * @param htmlContent Original HTML content with temp URLs
      * @param urlMapping  Map of old URL → new URL
      * @return Updated HTML content with new URLs
      */
     public String updateContentUrls(String htmlContent, java.util.Map<String, String> urlMapping) {
-        if (htmlContent == null || htmlContent.isEmpty() || urlMapping == null || urlMapping.isEmpty()) {
+        if (htmlContent == null || htmlContent.isEmpty() || urlMapping == null
+                || urlMapping.isEmpty()) {
             return htmlContent;
         }
 
@@ -273,11 +277,8 @@ public class FileService {
     }
 
     /**
-     * Delete all files associated with a post from MinIO and DB
-     * This includes:
-     * - Featured image: /{postId}/featured/
-     * - Content files: /{postId}/content/
-     * - Attachments: /{postId}/attachments/
+     * Delete all files associated with a post from MinIO and DB This includes: - Featured image: /{postId}/featured/ -
+     * Content files: /{postId}/content/ - Attachments: /{postId}/attachments/
      *
      * @param postId The post ID
      */
@@ -320,7 +321,6 @@ public class FileService {
                 postAttachmentRepository.deleteAll(attachments);
                 log.info("[DB] Deleted {} attachment record(s) from database", attachments.size());
             }
-
         } catch (Exception e) {
             log.error("Failed to delete post files for postId {}: {}", postId, e.getMessage(), e);
             throw new FileUploadException("Failed to delete post files: " + e.getMessage());
@@ -352,7 +352,8 @@ public class FileService {
      */
     public void deleteAttachment(int attachmentId) {
         PostAttachments postAttachment = postAttachmentRepository.findById(attachmentId)
-                .orElseThrow(() -> new FileUploadException("Attachment not found with id: " + attachmentId));
+                .orElseThrow(
+                        () -> new FileUploadException("Attachment not found with id: " + attachmentId));
 
         try {
             // Delete from MinIO storage
@@ -379,10 +380,10 @@ public class FileService {
     }
 
     /**
-     * Delete a file from MinIO by its URL
-     * Extracts bucket and object name from URL and deletes the file
+     * Delete a file from MinIO by its URL Extracts bucket and object name from URL and deletes the file
      *
-     * @param fileUrl Full URL of the file (e.g., <a href="https://minioconsole.grummans.me/posts/123/featured/file.jpg">...</a>)
+     * @param fileUrl Full URL of the file (e.g., <a
+     *                href="https://minioconsole.grummans.me/posts/123/featured/file.jpg">...</a>)
      */
     public void deleteFileByUrl(String fileUrl) {
         if (fileUrl == null || fileUrl.trim().isEmpty()) {
@@ -427,7 +428,6 @@ public class FileService {
             );
 
             log.info("[MinIO] Successfully deleted file: {}", fileUrl);
-
         } catch (Exception e) {
             log.error("[MinIO] Failed to delete file by URL: {}", fileUrl, e);
             // Don't throw exception - continue with other operations
@@ -561,7 +561,8 @@ public class FileService {
         }
     }
 
-    private void uploadToMinio(String storagePath, MultipartFile file, String bucketName) throws Exception {
+    private void uploadToMinio(String storagePath, MultipartFile file, String bucketName)
+            throws Exception {
         System.out.println("[MinIO] === Upload Start ===");
         System.out.println("[MinIO] Bucket: " + bucketName);
         System.out.println("[MinIO] Storage Path: " + storagePath);
@@ -594,10 +595,8 @@ public class FileService {
     }
 
     /**
-     * Extract all file URLs from HTML content (from TipTap Editor)
-     * Looks for:
-     * - <img> tags with src attribute
-     * - <a> tags with href attribute pointing to files
+     * Extract all file URLs from HTML content (from TipTap Editor) Looks for: - <img> tags with src attribute - <a>
+     * tags with href attribute pointing to files
      *
      * @param htmlContent The HTML content to parse
      * @return List of file URLs found in the content
@@ -640,6 +639,4 @@ public class FileService {
 
         return fileUrls;
     }
-
-
 }

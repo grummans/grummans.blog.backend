@@ -9,7 +9,7 @@ public class TagDTO {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public  static class Req {
+    public static class Req {
         private String name;
         private String slug;
     }
@@ -21,5 +21,6 @@ public class TagDTO {
         private int id;
         private String name;
         private String slug;
+        private int postCount;
     }
 }
