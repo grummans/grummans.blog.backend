@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface PostRepository extends JpaRepository<Posts, Integer> {
     Page<Posts> findByTitleContainingIgnoreCase(String title, Pageable pageable);
@@ -16,4 +18,10 @@ public interface PostRepository extends JpaRepository<Posts, Integer> {
     Page<Posts> findByTitleContainingIgnoreCaseAndStatus(String title, String status, Pageable pageable);
 
     int countByCategoryId(Integer categoryId);
+
+    List<Posts> findAllByStatus(String status);
+
+    Posts findBySlug(String slug);
+
+    List<Posts> findByStatusAndIsFeatured(String status, boolean isFeatured);
 }

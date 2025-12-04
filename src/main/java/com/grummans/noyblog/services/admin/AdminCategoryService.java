@@ -8,12 +8,11 @@ import com.grummans.noyblog.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CategoryService {
+public class AdminCategoryService {
 
     private final CategoryRepository categoryRepository;
     private final PostRepository postRepository;
@@ -22,14 +21,12 @@ public class CategoryService {
     public List<CategoryDTO.CategorySimpleDTO> getAllCategories() {
         List<Categories> categories = categoryRepository.findAll();
 
-        return categories.stream()
-                .map(category -> {
-                    CategoryDTO.CategorySimpleDTO dto = categoryMapper.toCategorySimpleDTO(category);
-                    int postCount = postRepository.countByCategoryId(category.getId());
-                    dto.setPostCount(postCount);
-                    return dto;
-                })
-                .toList();
+        return categories.stream().map(category -> {
+            CategoryDTO.CategorySimpleDTO dto = categoryMapper.toCategorySimpleDTO(category);
+            int postCount = postRepository.countByCategoryId(category.getId());
+            dto.setPostCount(postCount);
+            return dto;
+        }).toList();
     }
 
     public CategoryDTO.CategorySimpleDTO createCategory(CategoryDTO.Req req) {

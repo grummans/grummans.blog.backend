@@ -2,8 +2,6 @@ package com.grummans.noyblog.services.admin;
 
 import com.grummans.noyblog.dto.TagDTO;
 import com.grummans.noyblog.mapper.TagMapper;
-import com.grummans.noyblog.model.PostTags;
-import com.grummans.noyblog.model.Posts;
 import com.grummans.noyblog.model.Tags;
 import com.grummans.noyblog.repository.PostTagsRepository;
 import com.grummans.noyblog.repository.TagsRepository;
@@ -16,7 +14,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class TagService {
+public class AdminTagService {
     private final TagsRepository tagsRepository;
 
     private final PostTagsRepository postTagsRepository;

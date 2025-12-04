@@ -26,4 +26,6 @@ public interface PostMapper {
 
     // Explicit mapping for Simple DTO is not necessary but keep default
     PostDTO.SimplePostDTO toSimplePostDTO(Posts post);
+
+    PostDTO.PostForClientDTO toPostDTOForClient(Posts post);
 }

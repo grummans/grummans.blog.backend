@@ -68,4 +68,19 @@ public class PostDTO {
         private String featuredImageUrl;
         private String updatedAt;
     }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PostForClientDTO {
+        private int id;
+        private String title;
+        private String slug;
+        private String excerpt;
+        private String featuredImageUrl;
+        private CategoryDTO.CategorySimpleDTO category;
+        private List<TagDTO.TagSimpleDTO> tags;
+        private int readingTimeMinutes;
+        private String updatedAt;
+    }
 }

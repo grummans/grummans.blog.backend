@@ -2,7 +2,7 @@ package com.grummans.noyblog.controller.admin;
 
 import com.grummans.noyblog.configuration.ApiResponse;
 import com.grummans.noyblog.dto.CategoryDTO;
-import com.grummans.noyblog.services.admin.CategoryService;
+import com.grummans.noyblog.services.admin.AdminCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,9 +11,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/a/categories")
 @RequiredArgsConstructor
-public class CategoryController {
+public class AdminCategoryController {
 
-    private final CategoryService categoryService;
+    private final AdminCategoryService categoryService;
 
     @CrossOrigin
     @GetMapping()

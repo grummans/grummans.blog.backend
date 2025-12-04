@@ -3,7 +3,7 @@ package com.grummans.noyblog.controller.admin;
 import com.grummans.noyblog.configuration.ApiResponse;
 import com.grummans.noyblog.configuration.PageResponse;
 import com.grummans.noyblog.dto.PostDTO;
-import com.grummans.noyblog.services.admin.PostService;
+import com.grummans.noyblog.services.admin.AdminPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/a/posts")
 @RequiredArgsConstructor
-public class PostController {
+public class AdminPostController {
 
-    private final PostService postService;
+    private final AdminPostService postService;
 
     @GetMapping("/list")
     @CrossOrigin

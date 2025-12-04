@@ -2,7 +2,7 @@ package com.grummans.noyblog.controller.admin;
 
 import com.grummans.noyblog.configuration.ApiResponse;
 import com.grummans.noyblog.dto.TagDTO;
-import com.grummans.noyblog.services.admin.TagService;
+import com.grummans.noyblog.services.admin.AdminTagService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,9 +11,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/a/tags")
 @RequiredArgsConstructor
-public class TagController {
+public class AdminTagController {
 
-    private final TagService tagService;
+    private final AdminTagService tagService;
 
     @CrossOrigin
     @GetMapping()
