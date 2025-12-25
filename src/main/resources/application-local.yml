@@ -1,0 +1,12 @@
+# Application configuration for NoyBlog
+# Database connection settings
+spring:
+  datasource:
+    url: jdbc:postgresql://100.64.0.1:5432/blogdb
+    username: grummans
+    password: WGEM1bUYD8nKMUd4
+
+server:
+  port: 8085
+  servlet:
+    context-path: /api
