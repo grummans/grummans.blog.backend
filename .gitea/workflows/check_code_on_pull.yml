@@ -46,4 +46,3 @@ jobs:
           -Dsonar.projectName='Grummans Blog'
           -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
           -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
-          -Dsonar.branch.name=dev
