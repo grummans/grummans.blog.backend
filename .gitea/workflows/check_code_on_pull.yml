@@ -26,9 +26,24 @@ jobs:
       - name: Install Maven
         run: sudo apt-get update -y && sudo apt-get install -y maven
 
-      - name: Build and analyze
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar -Dsonar.projectKey=grummans_noyblog -Dsonar.projectName='Grummans Blog'
+      - name: Build and Analyze (Pull Request)
+        if: github.event_name == 'pull_request'
+        run: >
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar
+          -Dsonar.projectKey=grummans_noyblog
+          -Dsonar.projectName='Grummans Blog'
+          -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
+          -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
+          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
+          -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
+          -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
+
+      - name: Build and Analyze (Push to dev)
+        if: github.event_name == 'push'
+        run: >
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar
+          -Dsonar.projectKey=grummans_noyblog
+          -Dsonar.projectName='Grummans Blog'
+          -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
+          -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
+          -Dsonar.branch.name=dev
