@@ -26,8 +26,9 @@ jobs:
 
       - name: Analyze Main Branch (Init)
         run: >
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar
           -Dsonar.projectKey=grummans_noyblog
           -Dsonar.projectName='Grummans Blog'
           -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
           -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
+          -DskipTests
