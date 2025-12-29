@@ -25,14 +25,6 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # [TỐI ƯU] Cache Maven packages: Giúp pipeline chạy nhanh hơn các lần sau
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
       # Bước cài Maven thường không cần thiết trên ubuntu-latest vì nó có sẵn.
       # Nhưng nếu runner Gitea của bạn là self-hosted sạch trơn thì giữ lại dòng này.
       - name: Install Maven
