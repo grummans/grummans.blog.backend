@@ -5,6 +5,8 @@ on:
     branches:
       - dev
   pull_request:
+    branches:
+      - dev
     types: [opened, synchronize, reopened]
 
 jobs:
@@ -15,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # Bắt buộc để so sánh code cũ/mới
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -23,9 +25,22 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      # [TỐI ƯU] Cache Maven packages: Giúp pipeline chạy nhanh hơn các lần sau
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      # Bước cài Maven thường không cần thiết trên ubuntu-latest vì nó có sẵn.
+      # Nhưng nếu runner Gitea của bạn là self-hosted sạch trơn thì giữ lại dòng này.
       - name: Install Maven
         run: sudo apt-get update -y && sudo apt-get install -y maven
 
+      # ----------------------------------------------------------------
+      # TRƯỜNG HỢP 1: Chạy khi có Pull Request (Cần báo cáo Quality Gate)
+      # ----------------------------------------------------------------
       - name: Build and Analyze (Pull Request)
         if: github.event_name == 'pull_request'
         run: >
@@ -34,10 +49,13 @@ jobs:
           -Dsonar.projectName='Grummans Blog'
           -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
           -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
-#          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
-#          -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
-#          -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
+          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
+          -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
+          -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
 
+      # ----------------------------------------------------------------
+      # TRƯỜNG HỢP 2: Chạy khi Push thẳng vào DEV (Để cập nhật Baseline)
+      # ----------------------------------------------------------------
       - name: Build and Analyze (Push to dev)
         if: github.event_name == 'push'
         run: >
@@ -46,3 +64,4 @@ jobs:
           -Dsonar.projectName='Grummans Blog'
           -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
           -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
+          -Dsonar.branch.name=dev
