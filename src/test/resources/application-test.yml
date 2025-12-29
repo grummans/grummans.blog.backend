@@ -1,0 +1,31 @@
+# Test configuration - using H2 in-memory database
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: false
+
+# MinIO test configuration (mock values)
+minio:
+  endpoint: http://localhost:9000
+  accessKey: testAccessKey
+  secretKey: testSecretKey
+  bucketName: test-bucket
+
+# Logging
+logging:
+  level:
+    root: WARN
+    com.grummans: DEBUG
+
