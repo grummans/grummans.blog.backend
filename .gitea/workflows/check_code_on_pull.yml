@@ -27,7 +27,6 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: 'maven'
 
       - name: Build and Analyze (Pull Request)
         if: gitea.event_name == 'pull_request'
@@ -35,7 +34,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST }}
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
         run: |
-          ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar \
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar \
             -Dsonar.projectKey=grummans_noyblog \
             -Dsonar.projectName='Grummans Blog' \
             -Dsonar.host.url=${SONAR_HOST_URL} \
@@ -50,7 +49,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST }}
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
         run: |
-          ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar \
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar \
             -Dsonar.projectKey=grummans_noyblog \
             -Dsonar.projectName='Grummans Blog' \
             -Dsonar.host.url=${SONAR_HOST_URL} \
