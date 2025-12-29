@@ -14,6 +14,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminCategoryService {
 
+    private static final String ERROR_CATEGORY_NOT_FOUND = "Category not found with id: ";
+
     private final CategoryRepository categoryRepository;
     private final PostRepository postRepository;
     private final CategoryMapper categoryMapper;
@@ -37,13 +39,13 @@ public class AdminCategoryService {
 
     public CategoryDTO.Res getDetailCategory(int categoryId) {
         Categories category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
+                .orElseThrow(() -> new RuntimeException(ERROR_CATEGORY_NOT_FOUND + categoryId));
         return categoryMapper.toCategoryRes(category);
     }
 
     public CategoryDTO.CategorySimpleDTO updateCategory(int categoryId, CategoryDTO.Req req) {
         Categories category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
+                .orElseThrow(() -> new RuntimeException(ERROR_CATEGORY_NOT_FOUND + categoryId));
         category.setName(req.getName());
         category.setSlug(req.getSlug());
         category.setDescription(req.getDescription());
@@ -54,7 +56,7 @@ public class AdminCategoryService {
 
     public void deleteCategory(int categoryId) {
         Categories category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
+                .orElseThrow(() -> new RuntimeException(ERROR_CATEGORY_NOT_FOUND + categoryId));
         categoryRepository.delete(category);
     }
 }

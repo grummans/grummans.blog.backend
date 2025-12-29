@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 public class CategoryDTO {
 
+    private CategoryDTO() {
+        // Utility class - hide implicit public constructor
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

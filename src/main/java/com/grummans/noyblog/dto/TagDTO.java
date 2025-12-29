@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 public class TagDTO {
 
+    private TagDTO() {
+        // Utility class - hide implicit public constructor
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

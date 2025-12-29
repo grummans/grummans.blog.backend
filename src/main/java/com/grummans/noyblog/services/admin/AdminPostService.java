@@ -23,12 +23,19 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminPostService {
+
+    // Constants for status
+    private static final String STATUS_DRAFT = "DRAFT";
+    private static final String STATUS_PUBLISHED = "PUBLISHED";
+
+    // Constants for error messages
+    private static final String ERROR_POST_NOT_FOUND = "Post not found with id: ";
+    private static final String ERROR_TAG_NOT_FOUND = "Tag not found with id: ";
 
     private final PostRepository postRepository;
 
@@ -105,7 +112,7 @@ public class AdminPostService {
 
             List<Tags> tags = postTagsRepository.findByPostId(post.getId());
 
-            postDTORes.setTags(tags.stream().map(tagMapper::toTagSimpleDTO).collect(Collectors.toList()));
+            postDTORes.setTags(tags.stream().map(tagMapper::toTagSimpleDTO).toList());
 
             return postDTORes;
         });
@@ -125,102 +132,33 @@ public class AdminPostService {
     @Transactional
     public PostDTO.SimplePostDTO saveDraftPost(PostDTO.Req req, MultipartFile featuredImage) {
         req.setAuthorUsername("grummans");
-        // Process content
-        String htmlContent = req.getContent();
-        if (htmlContent == null || htmlContent.trim().isEmpty()) {
-            htmlContent = "";
-        }
-        String sanitizedHtml = contentService.sanitizeHtml(htmlContent);
+        String sanitizedHtml = sanitizeContent(req.getContent());
 
         Posts post;
-        boolean isUpdate = false;
+        boolean isUpdate = req.getId() != null && req.getId() > 0;
 
-        // Check if updating existing draft or creating new one
-        if (req.getId() != null && req.getId() > 0) {
-            // UPDATE existing draft
+        if (isUpdate) {
             post = postRepository.findById(req.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Draft post not found with id: " + req.getId()));
+                    .orElseThrow(() -> new IllegalArgumentException(ERROR_POST_NOT_FOUND + req.getId()));
 
-            // Only allow updating drafts, not published posts
-            if (!"DRAFT".equals(post.getStatus())) {
+            if (!STATUS_DRAFT.equals(post.getStatus())) {
                 throw new IllegalArgumentException("Cannot save as draft - post is already published");
             }
-
-            isUpdate = true;
         } else {
-            // CREATE new draft
             post = postMapper.toPost(req);
             int authorId = usersRepository.findIdByUsername(req.getAuthorUsername());
             post.setAuthorId(authorId);
         }
 
-        // Set draft status and content
-        post.setStatus("DRAFT");
+        post.setStatus(STATUS_DRAFT);
         post.setContent(sanitizedHtml);
         post.setContentHtml(sanitizedHtml);
+        updateDraftFields(post, req, isUpdate);
 
-        // Update other fields (title, excerpt, etc.)
-        if (req.getTitle() != null) post.setTitle(req.getTitle());
-        if (req.getExcerpt() != null) post.setExcerpt(req.getExcerpt());
-        if (req.getSlug() != null) post.setSlug(req.getSlug());
-
-        // Handle category: Allow null for drafts
-        if (req.getCategoryId() > 0) {
-            // Valid category provided
-            post.setCategoryId(req.getCategoryId());
-        } else if (!isUpdate) {
-            // New draft without category - set to null
-            post.setCategoryId(null);
-        }
-        // For updates: if no categoryId provided or 0, keep existing value (don't change)
-
-        if (req.getMetaTitle() != null) post.setMetaTitle(req.getMetaTitle());
-        if (req.getMetaDescription() != null) post.setMetaDescription(req.getMetaDescription());
-        if (req.getReadingTimeMinutes() > 0) post.setReadingTimeMinutes(req.getReadingTimeMinutes());
-
-        // Save post
         Posts savedPost = postRepository.save(post);
-
-        // Upload featured image if provided
-        if (featuredImage != null && !featuredImage.isEmpty()) {
-            String featuredImageUrl = fileService.uploadFeaturedImage(savedPost.getId(), featuredImage);
-            savedPost.setFeaturedImageUrl(featuredImageUrl);
-            savedPost = postRepository.save(savedPost);
-        }
-
-        // Move content files from temp to post folder and update URLs in content
-        if (!sanitizedHtml.isEmpty()) {
-            List<String> fileUrls = fileService.extractFileUrlsFromContent(sanitizedHtml);
-            Map<String, String> urlMapping = fileService.moveContentFilesToPost(savedPost.getId(), fileUrls);
-
-            // Update content with new URLs (replace temp URLs with post-specific URLs)
-            if (!urlMapping.isEmpty()) {
-                String updatedContent = fileService.updateContentUrls(sanitizedHtml, urlMapping);
-                savedPost.setContent(updatedContent);
-                savedPost.setContentHtml(updatedContent);
-                savedPost = postRepository.save(savedPost);
-                log.info("Updated content URLs for draft post {}", savedPost.getId());
-            }
-        }
-
-        // Handle tags (delete old ones if updating, add new ones)
-        if (req.getTagId() != null && !req.getTagId().isEmpty()) {
-            if (isUpdate) {
-                // Delete all existing tags for this post
-                postTagsRepository.deleteAllByPostId(savedPost.getId());
-            }
-
-            // Add new tags
-            for (Integer tagId : req.getTagId()) {
-                Tags tag = tagsRepository.findById(tagId)
-                        .orElseThrow(() -> new IllegalArgumentException("Tag not found with id: " + tagId));
-
-                PostTags postTag = new PostTags();
-                postTag.setPost(savedPost);
-                postTag.setTag(tag);
-                postTagsRepository.save(postTag);
-            }
-        }
+        savedPost = handleFeaturedImageUpload(savedPost, featuredImage);
+        savedPost = processContentFiles(savedPost, sanitizedHtml);
+        updatePostTags(savedPost.getId(), req.getTagId(), isUpdate);
 
         return postMapper.toSimplePostDTO(savedPost);
     }
@@ -240,36 +178,16 @@ public class AdminPostService {
     public PostDTO.SimplePostDTO saveAndPublishPost(PostDTO.Req req, MultipartFile featuredImage) {
         boolean isUpdate = req.getId() != null && req.getId() > 0;
 
-        // Validate required fields before publishing
-        if (req.getTitle() == null || req.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("Cannot publish: Title is required");
-        }
-        if (req.getSlug() == null || req.getSlug().trim().isEmpty()) {
-            throw new IllegalArgumentException("Cannot publish: Slug is required");
-        }
-        if (req.getCategoryId() <= 0) {
-            throw new IllegalArgumentException("Cannot publish: Category is required");
-        }
-        if (req.getTagId() == null || req.getTagId().isEmpty()) {
-            throw new IllegalArgumentException("Cannot publish: At least one tag is required");
-        }
+        validatePublishFields(req);
 
-        // Process content: FE sends HTML from Tip Tap Editor
-        String htmlContent = req.getContent();
-        if (htmlContent == null || htmlContent.trim().isEmpty()) {
-            htmlContent = ""; // Allow empty content for now (can be tightened later)
-        }
-
-        // Sanitize HTML to prevent XSS
-        String sanitizedHtml = contentService.sanitizeHtml(htmlContent);
+        String sanitizedHtml = sanitizeContent(req.getContent());
 
         Posts post;
         if (isUpdate) {
-            // UPDATE existing draft post
             post = postRepository.findById(req.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + req.getId()));
+                    .orElseThrow(() -> new IllegalArgumentException(ERROR_POST_NOT_FOUND + req.getId()));
 
-            if (!"DRAFT".equals(post.getStatus())) {
+            if (!STATUS_DRAFT.equals(post.getStatus())) {
                 throw new IllegalArgumentException("Cannot publish - post is not a draft. Current status: " + post.getStatus());
             }
 
@@ -286,7 +204,6 @@ public class AdminPostService {
             post.setFeatured(req.isFeatured());
 
         } else {
-            // CREATE new post
             post = postMapper.toPost(req);
             post.setContent(sanitizedHtml);
             post.setContentHtml(sanitizedHtml);
@@ -295,48 +212,13 @@ public class AdminPostService {
             post.setAuthorId(authorId);
         }
 
-        // Set published status and date (for both create and update)
-        post.setStatus("PUBLISHED");
+        post.setStatus(STATUS_PUBLISHED);
         post.setPublishedAt(java.time.LocalDateTime.now());
 
-        // Save post
         Posts publishedPost = postRepository.save(post);
-
-        // Upload featured image if provided
-        if (featuredImage != null && !featuredImage.isEmpty()) {
-            String featuredImageUrl = fileService.uploadFeaturedImage(publishedPost.getId(), featuredImage);
-            publishedPost.setFeaturedImageUrl(featuredImageUrl);
-            publishedPost = postRepository.save(publishedPost);
-        }
-
-        // Move content files (images, documents, archives) from temp to post folder and update URLs
-        if (!sanitizedHtml.isEmpty()) {
-            List<String> fileUrls = fileService.extractFileUrlsFromContent(sanitizedHtml);
-            Map<String, String> urlMapping = fileService.moveContentFilesToPost(publishedPost.getId(), fileUrls);
-
-            // Update content with new URLs (replace temp URLs with post-specific URLs)
-            if (!urlMapping.isEmpty()) {
-                String updatedContent = fileService.updateContentUrls(sanitizedHtml, urlMapping);
-                publishedPost.setContent(updatedContent);
-                publishedPost.setContentHtml(updatedContent);
-                publishedPost = postRepository.save(publishedPost);
-                log.info("Updated content URLs for published post {}", publishedPost.getId());
-            }
-        }
-
-        // Update tags: Delete old ones (if update) and add new ones
-        if (isUpdate) {
-            postTagsRepository.deleteAllByPostId(publishedPost.getId());
-        }
-        for (Integer tagId : req.getTagId()) {
-            Tags tag = tagsRepository.findById(tagId)
-                    .orElseThrow(() -> new IllegalArgumentException("Tag not found with id: " + tagId));
-
-            PostTags postTag = new PostTags();
-            postTag.setPost(publishedPost);
-            postTag.setTag(tag);
-            postTagsRepository.save(postTag);
-        }
+        publishedPost = handleFeaturedImageUpload(publishedPost, featuredImage);
+        publishedPost = processContentFiles(publishedPost, sanitizedHtml);
+        updatePostTags(publishedPost.getId(), req.getTagId(), isUpdate);
 
         return postMapper.toSimplePostDTO(publishedPost);
     }
@@ -355,110 +237,26 @@ public class AdminPostService {
      */
     @Transactional
     public PostDTO.SimplePostDTO updatePublishedPost(int postId, PostDTO.Req req, MultipartFile featuredImage) {
-        // Find existing published post
         Posts post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+                .orElseThrow(() -> new IllegalArgumentException(ERROR_POST_NOT_FOUND + postId));
 
-        if (!"PUBLISHED".equals(post.getStatus())) {
+        if (!STATUS_PUBLISHED.equals(post.getStatus())) {
             throw new IllegalArgumentException("Cannot update - post is not published. Current status: " + post.getStatus() + ". Use /save-draft for drafts.");
         }
 
-        // Validate required fields
-        if (req.getTitle() == null || req.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("Title is required");
-        }
-        if (req.getSlug() == null || req.getSlug().trim().isEmpty()) {
-            throw new IllegalArgumentException("Slug is required");
-        }
-        if (req.getCategoryId() <= 0) {
-            throw new IllegalArgumentException("Category is required");
-        }
-        if (req.getTagId() == null || req.getTagId().isEmpty()) {
-            throw new IllegalArgumentException("At least one tag is required");
-        }
+        validateUpdateFields(req);
 
-        // *** IMPORTANT: Capture old content BEFORE updating post object ***
-        // This is needed to detect which files are no longer used and should be deleted
-        String oldContentBeforeUpdate = post.getContent();
-        List<String> oldFileUrls = fileService.extractFileUrlsFromContent(oldContentBeforeUpdate != null ? oldContentBeforeUpdate : "");
+        // Capture old content for cleanup
+        List<String> oldFileUrls = fileService.extractFileUrlsFromContent(
+                post.getContent() != null ? post.getContent() : "");
 
-        log.debug("Old content file URLs (before update): {}", oldFileUrls);
+        String sanitizedHtml = sanitizeContent(req.getContent());
+        updatePostFields(post, req, sanitizedHtml);
 
-        // Process and sanitize content
-        String htmlContent = req.getContent();
-        if (htmlContent == null || htmlContent.trim().isEmpty()) {
-            htmlContent = "";
-        }
-        String sanitizedHtml = contentService.sanitizeHtml(htmlContent);
-
-        // Update all fields
-        post.setTitle(req.getTitle());
-        post.setExcerpt(req.getExcerpt());
-        post.setSlug(req.getSlug());
-        post.setCategoryId(req.getCategoryId());
-        post.setContent(sanitizedHtml);
-        post.setContentHtml(sanitizedHtml);
-        post.setMetaTitle(req.getMetaTitle());
-        post.setMetaDescription(req.getMetaDescription());
-        post.setReadingTimeMinutes(req.getReadingTimeMinutes());
-        post.setFeatured(req.isFeatured());
-
-        // Keep status as PUBLISHED (don't change)
-        // Keep publishedAt (don't change)
-        // updatedAt will be updated automatically by @UpdateTimestamp
-
-        // Save post
         Posts updatedPost = postRepository.save(post);
-
-        // Upload new featured image if provided
-        if (featuredImage != null && !featuredImage.isEmpty()) {
-            // Delete old featured image first
-            if (updatedPost.getFeaturedImageUrl() != null) {
-                fileService.deleteFileByUrl(updatedPost.getFeaturedImageUrl());
-            }
-
-            String featuredImageUrl = fileService.uploadFeaturedImage(updatedPost.getId(), featuredImage);
-            updatedPost.setFeaturedImageUrl(featuredImageUrl);
-            updatedPost = postRepository.save(updatedPost);
-        }
-
-        // Handle content files - cleanup old files and move new files
-        List<String> newFileUrls = fileService.extractFileUrlsFromContent(sanitizedHtml);
-        log.debug("New content file URLs (after update): {}", newFileUrls);
-
-        // Delete files that are no longer referenced
-        for (String oldUrl : oldFileUrls) {
-            if (!newFileUrls.contains(oldUrl)) {
-                log.info("Deleting unused file: {}", oldUrl);
-                fileService.deleteFileByUrl(oldUrl);
-            }
-        }
-
-        // Move new files from temp to post folder and update URLs
-        if (!sanitizedHtml.isEmpty()) {
-            Map<String, String> urlMapping = fileService.moveContentFilesToPost(updatedPost.getId(), newFileUrls);
-
-            // Update content with new URLs (replace temp URLs with post-specific URLs)
-            if (!urlMapping.isEmpty()) {
-                String updatedContent = fileService.updateContentUrls(sanitizedHtml, urlMapping);
-                updatedPost.setContent(updatedContent);
-                updatedPost.setContentHtml(updatedContent);
-                updatedPost = postRepository.save(updatedPost);
-                log.info("Updated content URLs for published post {}", updatedPost.getId());
-            }
-        }
-
-        // Update tags: Delete old ones and add new ones
-        postTagsRepository.deleteAllByPostId(updatedPost.getId());
-        for (Integer tagId : req.getTagId()) {
-            Tags tag = tagsRepository.findById(tagId)
-                    .orElseThrow(() -> new IllegalArgumentException("Tag not found with id: " + tagId));
-
-            PostTags postTag = new PostTags();
-            postTag.setPost(updatedPost);
-            postTag.setTag(tag);
-            postTagsRepository.save(postTag);
-        }
+        updatedPost = handleFeaturedImageUpdate(updatedPost, featuredImage);
+        updatedPost = cleanupAndProcessContentFiles(updatedPost, sanitizedHtml, oldFileUrls);
+        updatePostTags(updatedPost.getId(), req.getTagId(), true);
 
         log.info("Published post {} updated successfully", updatedPost.getId());
         return postMapper.toSimplePostDTO(updatedPost);
@@ -486,7 +284,7 @@ public class AdminPostService {
      */
     private PostDTO.Res getPostDetail(int postId) {
         Posts post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+                .orElseThrow(() -> new IllegalArgumentException(ERROR_POST_NOT_FOUND + postId));
 
         PostDTO.Res postDTORes = postMapper.toPostDTO(post);
 
@@ -512,7 +310,7 @@ public class AdminPostService {
         List<Tags> tags = postTagsRepository.findByPostId(post.getId());
         postDTORes.setTags(tags.stream()
                 .map(tagMapper::toTagSimpleDTO)
-                .collect(Collectors.toList()));
+                .toList());
 
         // Get post attachments (files displayed separately from content)
         List<PostAttachments> attachments = fileService.getPostAttachments(postId);
@@ -531,12 +329,189 @@ public class AdminPostService {
     @Transactional
     public void deletePost(int postId) {
         Posts post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+                .orElseThrow(() -> new IllegalArgumentException(ERROR_POST_NOT_FOUND + postId));
 
         fileService.deletePostFile(postId);
 
         // Delete the post
         postRepository.delete(post);
 
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    /**
+     * Sanitize HTML content, returning empty string if null or blank
+     */
+    private String sanitizeContent(String htmlContent) {
+        if (htmlContent == null || htmlContent.trim().isEmpty()) {
+            return "";
+        }
+        return contentService.sanitizeHtml(htmlContent);
+    }
+
+    /**
+     * Upload featured image if provided and save the post with new URL
+     */
+    private Posts handleFeaturedImageUpload(Posts post, MultipartFile featuredImage) {
+        if (featuredImage != null && !featuredImage.isEmpty()) {
+            String featuredImageUrl = fileService.uploadFeaturedImage(post.getId(), featuredImage);
+            post.setFeaturedImageUrl(featuredImageUrl);
+            return postRepository.save(post);
+        }
+        return post;
+    }
+
+    /**
+     * Move content files from temp to post folder and update URLs in content
+     */
+    private Posts processContentFiles(Posts post, String sanitizedHtml) {
+        if (sanitizedHtml.isEmpty()) {
+            return post;
+        }
+
+        List<String> fileUrls = fileService.extractFileUrlsFromContent(sanitizedHtml);
+        Map<String, String> urlMapping = fileService.moveContentFilesToPost(post.getId(), fileUrls);
+
+        if (!urlMapping.isEmpty()) {
+            String updatedContent = fileService.updateContentUrls(sanitizedHtml, urlMapping);
+            post.setContent(updatedContent);
+            post.setContentHtml(updatedContent);
+            post = postRepository.save(post);
+            log.info("Updated content URLs for post {}", post.getId());
+        }
+        return post;
+    }
+
+    /**
+     * Update post tags - delete old ones and add new ones
+     */
+    private void updatePostTags(int postId, List<Integer> tagIds, boolean deleteExisting) {
+        if (tagIds == null || tagIds.isEmpty()) {
+            return;
+        }
+
+        if (deleteExisting) {
+            postTagsRepository.deleteAllByPostId(postId);
+        }
+
+        Posts post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException(ERROR_POST_NOT_FOUND + postId));
+
+        for (Integer tagId : tagIds) {
+            Tags tag = tagsRepository.findById(tagId)
+                    .orElseThrow(() -> new IllegalArgumentException(ERROR_TAG_NOT_FOUND + tagId));
+
+            PostTags postTag = new PostTags();
+            postTag.setPost(post);
+            postTag.setTag(tag);
+            postTagsRepository.save(postTag);
+        }
+    }
+
+    /**
+     * Update draft post fields from request
+     */
+    private void updateDraftFields(Posts post, PostDTO.Req req, boolean isUpdate) {
+        if (req.getTitle() != null) post.setTitle(req.getTitle());
+        if (req.getExcerpt() != null) post.setExcerpt(req.getExcerpt());
+        if (req.getSlug() != null) post.setSlug(req.getSlug());
+
+        // Handle category: Allow null for drafts
+        if (req.getCategoryId() > 0) {
+            post.setCategoryId(req.getCategoryId());
+        } else if (!isUpdate) {
+            post.setCategoryId(null);
+        }
+
+        if (req.getMetaTitle() != null) post.setMetaTitle(req.getMetaTitle());
+        if (req.getMetaDescription() != null) post.setMetaDescription(req.getMetaDescription());
+        if (req.getReadingTimeMinutes() > 0) post.setReadingTimeMinutes(req.getReadingTimeMinutes());
+    }
+
+    /**
+     * Validate required fields for publishing
+     */
+    private void validatePublishFields(PostDTO.Req req) {
+        if (req.getTitle() == null || req.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("Cannot publish: Title is required");
+        }
+        if (req.getSlug() == null || req.getSlug().trim().isEmpty()) {
+            throw new IllegalArgumentException("Cannot publish: Slug is required");
+        }
+        if (req.getCategoryId() <= 0) {
+            throw new IllegalArgumentException("Cannot publish: Category is required");
+        }
+        if (req.getTagId() == null || req.getTagId().isEmpty()) {
+            throw new IllegalArgumentException("Cannot publish: At least one tag is required");
+        }
+    }
+
+    /**
+     * Validate required fields for updating published post
+     */
+    private void validateUpdateFields(PostDTO.Req req) {
+        if (req.getTitle() == null || req.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("Title is required");
+        }
+        if (req.getSlug() == null || req.getSlug().trim().isEmpty()) {
+            throw new IllegalArgumentException("Slug is required");
+        }
+        if (req.getCategoryId() <= 0) {
+            throw new IllegalArgumentException("Category is required");
+        }
+        if (req.getTagId() == null || req.getTagId().isEmpty()) {
+            throw new IllegalArgumentException("At least one tag is required");
+        }
+    }
+
+    /**
+     * Update all post fields from request (for published post update)
+     */
+    private void updatePostFields(Posts post, PostDTO.Req req, String sanitizedHtml) {
+        post.setTitle(req.getTitle());
+        post.setExcerpt(req.getExcerpt());
+        post.setSlug(req.getSlug());
+        post.setCategoryId(req.getCategoryId());
+        post.setContent(sanitizedHtml);
+        post.setContentHtml(sanitizedHtml);
+        post.setMetaTitle(req.getMetaTitle());
+        post.setMetaDescription(req.getMetaDescription());
+        post.setReadingTimeMinutes(req.getReadingTimeMinutes());
+        post.setFeatured(req.isFeatured());
+    }
+
+    /**
+     * Handle featured image update - delete old and upload new
+     */
+    private Posts handleFeaturedImageUpdate(Posts post, MultipartFile featuredImage) {
+        if (featuredImage != null && !featuredImage.isEmpty()) {
+            // Delete old featured image first
+            if (post.getFeaturedImageUrl() != null) {
+                fileService.deleteFileByUrl(post.getFeaturedImageUrl());
+            }
+            String featuredImageUrl = fileService.uploadFeaturedImage(post.getId(), featuredImage);
+            post.setFeaturedImageUrl(featuredImageUrl);
+            return postRepository.save(post);
+        }
+        return post;
+    }
+
+    /**
+     * Cleanup old content files and process new content files
+     */
+    private Posts cleanupAndProcessContentFiles(Posts post, String sanitizedHtml, List<String> oldFileUrls) {
+        List<String> newFileUrls = fileService.extractFileUrlsFromContent(sanitizedHtml);
+
+        // Delete files that are no longer referenced
+        for (String oldUrl : oldFileUrls) {
+            if (!newFileUrls.contains(oldUrl)) {
+                log.info("Deleting unused file: {}", oldUrl);
+                fileService.deleteFileByUrl(oldUrl);
+            }
+        }
+
+        // Move new files from temp to post folder and update URLs
+        return processContentFiles(post, sanitizedHtml);
     }
 }

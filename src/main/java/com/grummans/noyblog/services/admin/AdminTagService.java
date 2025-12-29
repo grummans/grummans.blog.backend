@@ -15,6 +15,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AdminTagService {
+
+    private static final String ERROR_TAG_NOT_FOUND = "Tag not found with id: ";
+
     private final TagsRepository tagsRepository;
 
     private final PostTagsRepository postTagsRepository;
@@ -38,12 +41,14 @@ public class AdminTagService {
     }
 
     public TagDTO.TagSimpleDTO getDetailTag(int tagId) {
-        Tags tag = tagsRepository.findById(tagId).orElseThrow(() -> new RuntimeException("Tag not found with id: " + tagId));
+        Tags tag = tagsRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException(ERROR_TAG_NOT_FOUND + tagId));
         return tagMapper.toTagSimpleDTO(tag);
     }
 
     public TagDTO.TagSimpleDTO updateTag(int tagId, TagDTO.Req req) {
-        Tags tag = tagsRepository.findById(tagId).orElseThrow(() -> new RuntimeException("Tag not found with id: " + tagId));
+        Tags tag = tagsRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException(ERROR_TAG_NOT_FOUND + tagId));
         tag.setName(req.getName());
         tag.setSlug(req.getSlug());
         Tags updatedTag = tagsRepository.save(tag);
@@ -51,7 +56,8 @@ public class AdminTagService {
     }
 
     public void deleteTag(int tagId) {
-        Tags tag = tagsRepository.findById(tagId).orElseThrow(() -> new RuntimeException("Tag not found with id: " + tagId));
+        Tags tag = tagsRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException(ERROR_TAG_NOT_FOUND + tagId));
         tagsRepository.delete(tag);
     }
 }

@@ -43,13 +43,19 @@ public class FileService {
     private static final List<String> ALLOWED_CODE_EXTENSIONS =
             Arrays.asList(".json", ".xml", ".yaml", ".yml", ".sql", ".csv");
 
-    private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
+    private static final long MAX_IMAGE_SIZE = 10L * 1024 * 1024; // 10 MB
 
-    private static final long MAX_DOCUMENT_SIZE = 20 * 1024 * 1024; // 20 MB
+    private static final long MAX_DOCUMENT_SIZE = 20L * 1024 * 1024; // 20 MB
 
-    private static final long MAX_ARCHIVE_SIZE = 100 * 1024 * 1024; // 100 MB
+    private static final long MAX_ARCHIVE_SIZE = 100L * 1024 * 1024; // 100 MB
 
-    private static final long MAX_CODE_SIZE = 5 * 1024 * 1024; // 5 MB
+    private static final long MAX_CODE_SIZE = 5L * 1024 * 1024; // 5 MB
+
+    // Bucket names
+    private static final String BUCKET_POSTS = "posts";
+    private static final String BUCKET_USERS = "users";
+    private static final String BUCKET_POSTS_PREFIX = BUCKET_POSTS + "/";
+    private static final String URL_SEPARATOR = "/";
 
     /**
      * Upload featured image for a post (only stores the file, doesn't save to DB)
@@ -69,9 +75,9 @@ public class FileService {
         String storagePath = String.format("%d/featured/%s", postId, storedFileName);
 
         try {
-            uploadToMinio(storagePath, file, "posts");
+            uploadToMinio(storagePath, file, BUCKET_POSTS);
             // URL format: https://minioconsole.grummans.me/posts/{postId}/featured/{uuid}.jpg
-            return generateFileUrl("posts/" + storagePath);
+            return generateFileUrl(BUCKET_POSTS + "/" + storagePath);
         } catch (Exception e) {
             throw new FileUploadException("Failed to upload featured image: " + e.getMessage());
         }
@@ -95,7 +101,7 @@ public class FileService {
         String storagePath = String.format("%d/attachments/%s", postId, storedFileName);
 
         try {
-            uploadToMinio(storagePath, file, "posts");
+            uploadToMinio(storagePath, file, BUCKET_POSTS);
 
             PostAttachments postAttachment = new PostAttachments();
             postAttachment.setPostId(postId);
@@ -130,8 +136,8 @@ public class FileService {
         String storagePath = String.format("%d/avatar/%s", userId, storedFileName);
 
         try {
-            uploadToMinio(storagePath, file, "users");
-            return generateFileUrl("users/" + storagePath);
+            uploadToMinio(storagePath, file, BUCKET_USERS);
+            return generateFileUrl(BUCKET_USERS + "/" + storagePath);
         } catch (Exception e) {
             throw new FileUploadException("Failed to upload avatar: " + e.getMessage());
         }
@@ -156,19 +162,11 @@ public class FileService {
         String storagePath = String.format("temp/content-files/%s", storedFileName);
 
         try {
-            uploadToMinio(storagePath, file, "posts");
-            return generateFileUrl("posts/" + storagePath);
+            uploadToMinio(storagePath, file, BUCKET_POSTS);
+            return generateFileUrl(BUCKET_POSTS + "/" + storagePath);
         } catch (Exception e) {
             throw new FileUploadException("Failed to upload content file: " + e.getMessage());
         }
-    }
-
-    /**
-     * @deprecated Use uploadContentFile() instead for better flexibility
-     */
-    @Deprecated
-    public String uploadContentImage(MultipartFile file) {
-        return uploadContentFile(file);
     }
 
     /**
@@ -190,11 +188,11 @@ public class FileService {
             try {
                 // Extract storage path from URL
                 // URL format: https://minioconsole.grummans.me/posts/temp/content-files/uuid.jpg
-                String storagePath = fileUrl.replace(minioEndpoint + "/", "");
+                String storagePath = fileUrl.replace(minioEndpoint + URL_SEPARATOR, "");
 
                 // Only process temp files
-                if (!storagePath.startsWith("posts/temp/content-files/") && !storagePath.startsWith(
-                        "posts/temp/content-images/")) {
+                if (!storagePath.startsWith(BUCKET_POSTS_PREFIX + "temp/content-files/") && !storagePath.startsWith(
+                        BUCKET_POSTS_PREFIX + "temp/content-images/")) {
                     continue;
                 }
 
@@ -202,9 +200,9 @@ public class FileService {
                 String fileName = storagePath.substring(storagePath.lastIndexOf("/") + 1);
 
                 // Remove bucket name prefix - convert "posts/temp/..." to just "temp/..."
-                String objectPath = storagePath.substring("posts/".length());
+                String objectPath = storagePath.substring(BUCKET_POSTS_PREFIX.length());
 
-                // New path (without bucket prefix): {postId}/content/{filename}
+                // Build new path: postId + "/content/" + filename
                 String newObjectPath = String.format("%d/content/%s", postId, fileName);
 
                 log.info("[MinIO] Moving file:");
@@ -214,11 +212,11 @@ public class FileService {
                 // Copy object to new location
                 minioClient.copyObject(
                         CopyObjectArgs.builder()
-                                .bucket("posts")
+                                .bucket(BUCKET_POSTS)
                                 .object(newObjectPath)
                                 .source(
                                         CopySource.builder()
-                                                .bucket("posts")
+                                                .bucket(BUCKET_POSTS)
                                                 .object(objectPath)
                                                 .build()
                                 )
@@ -228,13 +226,13 @@ public class FileService {
                 // Delete old object
                 minioClient.removeObject(
                         RemoveObjectArgs.builder()
-                                .bucket("posts")
+                                .bucket(BUCKET_POSTS)
                                 .object(objectPath)
                                 .build()
                 );
 
                 // Generate new URL
-                String newUrl = generateFileUrl("posts/" + newObjectPath);
+                String newUrl = generateFileUrl(BUCKET_POSTS_PREFIX + newObjectPath);
 
                 // Store mapping: old URL → new URL
                 urlMapping.put(fileUrl, newUrl);
@@ -286,12 +284,12 @@ public class FileService {
         try {
             // Path prefix for this post (without bucket name)
             String folderPrefix = postId + "/";
-            log.info("[MinIO] Deleting all files under: posts/{}", folderPrefix);
+            log.info("[MinIO] Deleting all files under: {}{}", BUCKET_POSTS_PREFIX, folderPrefix);
 
             // List all objects with this prefix
             Iterable<Result<Item>> results = minioClient.listObjects(
                     ListObjectsArgs.builder()
-                            .bucket("posts")
+                            .bucket(BUCKET_POSTS)
                             .prefix(folderPrefix)
                             .recursive(true)
                             .build()
@@ -306,7 +304,7 @@ public class FileService {
                 log.debug("[MinIO] Deleting object: {}", objectName);
                 minioClient.removeObject(
                         RemoveObjectArgs.builder()
-                                .bucket("posts")
+                                .bucket(BUCKET_POSTS)
                                 .object(objectName)
                                 .build()
                 );
@@ -327,13 +325,7 @@ public class FileService {
         }
     }
 
-    /**
-     * @deprecated Use moveContentFilesToPost() instead
-     */
-    @Deprecated
-    public void moveContentImagesToPost(int postId, List<String> imageUrls) {
-        moveContentFilesToPost(postId, imageUrls);
-    }
+
 
     /**
      * Get all attachments for a specific post
@@ -359,7 +351,7 @@ public class FileService {
             // Delete from MinIO storage
             minioClient.removeObject(
                     RemoveObjectArgs.builder()
-                            .bucket("posts")
+                            .bucket(BUCKET_POSTS)
                             .object(postAttachment.getStoragePath())
                             .build()
             );
@@ -371,13 +363,6 @@ public class FileService {
         }
     }
 
-    /**
-     * @deprecated Use deleteAttachment() instead
-     */
-    @Deprecated
-    public void deleteFile(int attachmentId) {
-        deleteAttachment(attachmentId);
-    }
 
     /**
      * Delete a file from MinIO by its URL Extracts bucket and object name from URL and deletes the file
@@ -445,44 +430,30 @@ public class FileService {
         // Determine file category based on extension
         String fileCategory = determineFileCategory(extension);
 
-        // Get max file size based on category
-        long maxFileSize;
-        List<String> allowedExtensions;
+        // Get max file size and allowed extensions based on category
+        record FileCategoryConfig(long maxSize, List<String> allowedExtensions) {}
 
-        switch (fileCategory) {
-            case "image":
-                maxFileSize = MAX_IMAGE_SIZE;
-                allowedExtensions = ALLOWED_IMAGE_EXTENSIONS;
-                break;
-            case "document":
-                maxFileSize = MAX_DOCUMENT_SIZE;
-                allowedExtensions = ALLOWED_DOCUMENT_EXTENSIONS;
-                break;
-            case "archive":
-                maxFileSize = MAX_ARCHIVE_SIZE;
-                allowedExtensions = ALLOWED_ARCHIVE_EXTENSIONS;
-                break;
-            case "code":
-                maxFileSize = MAX_CODE_SIZE;
-                allowedExtensions = ALLOWED_CODE_EXTENSIONS;
-                break;
-            default:
-                throw new FileUploadException("File type not supported: " + extension);
-        }
+        FileCategoryConfig config = switch (fileCategory) {
+            case "image" -> new FileCategoryConfig(MAX_IMAGE_SIZE, ALLOWED_IMAGE_EXTENSIONS);
+            case "document" -> new FileCategoryConfig(MAX_DOCUMENT_SIZE, ALLOWED_DOCUMENT_EXTENSIONS);
+            case "archive" -> new FileCategoryConfig(MAX_ARCHIVE_SIZE, ALLOWED_ARCHIVE_EXTENSIONS);
+            case "code" -> new FileCategoryConfig(MAX_CODE_SIZE, ALLOWED_CODE_EXTENSIONS);
+            default -> throw new FileUploadException("File type not supported: " + extension);
+        };
 
         // Validate file size
-        if (file.getSize() > maxFileSize) {
+        if (file.getSize() > config.maxSize()) {
             throw new FileUploadException(
                     String.format("File size exceeds maximum allowed size of %d MB for %s files",
-                            maxFileSize / (1024 * 1024), fileCategory)
+                            config.maxSize() / (1024 * 1024), fileCategory)
             );
         }
 
         // Validate extension
-        if (!allowedExtensions.contains(extension)) {
+        if (!config.allowedExtensions().contains(extension)) {
             throw new FileUploadException(
                     String.format("File extension %s not allowed. Allowed %s types: %s",
-                            extension, fileCategory, allowedExtensions)
+                            extension, fileCategory, config.allowedExtensions())
             );
         }
     }
@@ -541,7 +512,7 @@ public class FileService {
      * @param bucketName The bucket name to check/create
      */
     private void ensureBucketExists(String bucketName) throws Exception {
-        System.out.println("[MinIO] Checking bucket: " + bucketName);
+        log.debug("[MinIO] Checking bucket: {}", bucketName);
         boolean exists = minioClient.bucketExists(
                 BucketExistsArgs.builder()
                         .bucket(bucketName)
@@ -549,24 +520,24 @@ public class FileService {
         );
 
         if (!exists) {
-            System.out.println("[MinIO] Bucket not found, creating: " + bucketName);
+            log.info("[MinIO] Bucket not found, creating: {}", bucketName);
             minioClient.makeBucket(
                     MakeBucketArgs.builder()
                             .bucket(bucketName)
                             .build()
             );
-            System.out.println("[MinIO] Successfully created bucket: " + bucketName);
+            log.info("[MinIO] Successfully created bucket: {}", bucketName);
         } else {
-            System.out.println("[MinIO] Bucket already exists: " + bucketName);
+            log.debug("[MinIO] Bucket already exists: {}", bucketName);
         }
     }
 
     private void uploadToMinio(String storagePath, MultipartFile file, String bucketName)
             throws Exception {
-        System.out.println("[MinIO] === Upload Start ===");
-        System.out.println("[MinIO] Bucket: " + bucketName);
-        System.out.println("[MinIO] Storage Path: " + storagePath);
-        System.out.println("[MinIO] File Name: " + file.getOriginalFilename());
+        log.debug("[MinIO] === Upload Start ===");
+        log.debug("[MinIO] Bucket: {}", bucketName);
+        log.debug("[MinIO] Storage Path: {}", storagePath);
+        log.debug("[MinIO] File Name: {}", file.getOriginalFilename());
 
         // Ensure bucket exists before upload
         ensureBucketExists(bucketName);
@@ -580,7 +551,7 @@ public class FileService {
                             .contentType(file.getContentType())
                             .build()
             );
-            System.out.println("[MinIO] Upload successful");
+            log.debug("[MinIO] Upload successful");
         }
     }
 
@@ -623,20 +594,30 @@ public class FileService {
         }
 
         // Pattern to match <a> tags with file links: <a href="url" ...>
-        // Only match if href contains file extensions
+        // Use simpler regex and validate extension in code
         java.util.regex.Pattern linkPattern = java.util.regex.Pattern.compile(
-                "<a[^>]+href=\"([^\"]+\\.(pdf|doc|docx|txt|md|xls|xlsx|ppt|pptx|zip|rar|7z|tar|gz|json|xml|yaml|yml|sql|csv))\"",
+                "<a[^>]+href=\"([^\"]+)\"",
                 java.util.regex.Pattern.CASE_INSENSITIVE
         );
         java.util.regex.Matcher linkMatcher = linkPattern.matcher(htmlContent);
         while (linkMatcher.find()) {
             String url = linkMatcher.group(1);
-            // Only add URLs from our MinIO endpoint
-            if (url.startsWith(minioEndpoint)) {
+            // Only add URLs from our MinIO endpoint with valid file extensions
+            if (url.startsWith(minioEndpoint) && hasAllowedFileExtension(url)) {
                 fileUrls.add(url);
             }
         }
 
         return fileUrls;
+    }
+
+    /**
+     * Check if URL has an allowed file extension (documents, archives, code files)
+     */
+    private boolean hasAllowedFileExtension(String url) {
+        String lowerUrl = url.toLowerCase();
+        return ALLOWED_DOCUMENT_EXTENSIONS.stream().anyMatch(lowerUrl::endsWith)
+                || ALLOWED_ARCHIVE_EXTENSIONS.stream().anyMatch(lowerUrl::endsWith)
+                || ALLOWED_CODE_EXTENSIONS.stream().anyMatch(lowerUrl::endsWith);
     }
 }

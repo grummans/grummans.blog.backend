@@ -9,6 +9,10 @@ import java.util.List;
 
 public class PostDTO {
 
+    private PostDTO() {
+        // Utility class - hide implicit public constructor
+    }
+
     @Data
     @NoArgsConstructor
     public static class Req {

@@ -30,18 +30,6 @@ public class FileController {
     }
 
     /**
-     * @deprecated Use /upload-content-file instead for better flexibility
-     * Kept for backward compatibility
-     */
-    @Deprecated
-    @CrossOrigin
-    @PostMapping(value = "/upload-content-image", consumes = {"multipart/form-data"})
-    public ApiResponse<String> uploadContentImage(
-            @RequestParam("image") MultipartFile image) {
-        return uploadContentFile(image);
-    }
-
-    /**
      * Upload avatar for user
      */
     @CrossOrigin
@@ -61,9 +49,9 @@ public class FileController {
      */
     @CrossOrigin
     @DeleteMapping("/{attachmentId}")
-    public ApiResponse<Void> deleteFile(@PathVariable int attachmentId) {
+    public ApiResponse<Void> deleteAttachment(@PathVariable int attachmentId) {
         ApiResponse<Void> response = new ApiResponse<>();
-        fileService.deleteFile(attachmentId);
+        fileService.deleteAttachment(attachmentId);
         response.setCode(200);
         response.setMessage("File deleted successfully");
         return response;
