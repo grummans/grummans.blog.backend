@@ -146,18 +146,6 @@
 					</execution>
 				</executions>
 			</plugin>
-            <plugin>
-                <groupId>org.sonarsource.scanner.maven</groupId>
-                <artifactId>sonar-maven-plugin</artifactId>
-                <version>4.0.0.4121</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>commons-lang</groupId>
-                        <artifactId>commons-lang</artifactId>
-                        <version>2.6</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
 		</plugins>
 	</build>
 
