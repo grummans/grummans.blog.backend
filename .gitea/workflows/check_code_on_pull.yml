@@ -9,44 +9,50 @@ on:
     branches:
       - dev
       - main
-    types: [opened, synchronize, reopened]
 
 jobs:
   build_and_analyze:
     name: Build, Test and Analyze
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-
-      - name: Install Maven
-        run: sudo apt-get update -y && sudo apt-get install -y maven
+          cache: 'maven'
 
       - name: Build and Analyze (Pull Request)
-        if: github.event_name == 'pull_request'
-        run: >
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar
-          -Dsonar.projectKey=grummans_noyblog
-          -Dsonar.projectName='Grummans Blog'
-          -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
-          -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
-          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
-          -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
-          -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
+        if: gitea.event_name == 'pull_request'
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST }}
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+        run: |
+          ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar \
+            -Dsonar.projectKey=grummans_noyblog \
+            -Dsonar.projectName='Grummans Blog' \
+            -Dsonar.host.url=${SONAR_HOST_URL} \
+            -Dsonar.token=${SONAR_TOKEN} \
+            -Dsonar.pullrequest.key=${{ gitea.event.pull_request.number }} \
+            -Dsonar.pullrequest.branch=${{ gitea.head_ref }} \
+            -Dsonar.pullrequest.base=${{ gitea.base_ref }}
 
-      - name: Build and Analyze (Push to dev)
-        if: github.event_name == 'push'
-        run: >
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar
-          -Dsonar.projectKey=grummans_noyblog
-          -Dsonar.projectName='Grummans Blog'
-          -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
-          -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
+      - name: Build and Analyze (Push)
+        if: gitea.event_name == 'push'
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST }}
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+        run: |
+          ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar \
+            -Dsonar.projectKey=grummans_noyblog \
+            -Dsonar.projectName='Grummans Blog' \
+            -Dsonar.host.url=${SONAR_HOST_URL} \
+            -Dsonar.token=${SONAR_TOKEN} \
+            -Dsonar.branch.name=${{ gitea.ref_name }}
