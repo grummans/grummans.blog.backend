@@ -19,6 +19,11 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Install Maven
+        run: |
+          sudo apt update
+          sudo apt install -y maven
+
       - name: Analyze Main Branch (Init)
         run: >
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar
