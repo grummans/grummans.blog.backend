@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -56,9 +57,10 @@ class ContentServiceTest {
             String result = contentService.sanitizeHtml(html);
 
             // Then
-            assertThat(result).isEqualTo("<p>Hello</p><p>World</p>");
-            assertThat(result).doesNotContain("<script>");
-            assertThat(result).doesNotContain("alert");
+            assertThat(result)
+                    .isEqualTo("<p>Hello</p><p>World</p>")
+                    .doesNotContain("<script>")
+                    .doesNotContain("alert");
         }
 
         @Test
@@ -87,78 +89,29 @@ class ContentServiceTest {
             assertThat(result).doesNotContain("javascript:");
         }
 
-        @Test
+        @ParameterizedTest
+        @CsvSource({
+                "'<img src=\"image.jpg\" onerror=\"alert()\" />', 'onerror='",
+                "'<button onclick=\"doSomething()\">Click</button>', 'onclick='",
+                "'<div onmouseover=\"malicious()\">Hover me</div>', 'onmouseover='"
+        })
         @DisplayName("Should remove inline event handlers")
-        void shouldRemoveInlineEventHandlers() {
-            // Given
-            String html = "<img src=\"image.jpg\" onerror=\"alert('XSS')\" />";
-
+        void shouldRemoveInlineEventHandlers(String html, String forbidden) {
             // When
             String result = contentService.sanitizeHtml(html);
 
             // Then
-            assertThat(result).doesNotContain("onerror=");
-            assertThat(result).doesNotContain("alert");
+            assertThat(result).doesNotContain(forbidden);
         }
 
-        @Test
-        @DisplayName("Should remove onclick event handler")
-        void shouldRemoveOnclickEventHandler() {
-            // Given
-            String html = "<button onclick=\"doSomething()\">Click</button>";
-
-            // When
-            String result = contentService.sanitizeHtml(html);
-
-            // Then
-            assertThat(result).doesNotContain("onclick=");
-        }
-
-        @Test
-        @DisplayName("Should remove onmouseover event handler")
-        void shouldRemoveOnmouseoverEventHandler() {
-            // Given
-            String html = "<div onmouseover=\"malicious()\">Hover me</div>";
-
-            // When
-            String result = contentService.sanitizeHtml(html);
-
-            // Then
-            assertThat(result).doesNotContain("onmouseover=");
-        }
-
-        @Test
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "<h1>Title</h1><p>This is a <strong>bold</strong> paragraph.</p><ul><li>Item 1</li><li>Item 2</li></ul>",
+                "<img src=\"https://example.com/image.jpg\" alt=\"Description\" />",
+                "<a href=\"https://example.com\">Link</a>"
+        })
         @DisplayName("Should preserve safe HTML content")
-        void shouldPreserveSafeHtmlContent() {
-            // Given
-            String html = "<h1>Title</h1><p>This is a <strong>bold</strong> paragraph.</p><ul><li>Item 1</li><li>Item 2</li></ul>";
-
-            // When
-            String result = contentService.sanitizeHtml(html);
-
-            // Then
-            assertThat(result).isEqualTo(html);
-        }
-
-        @Test
-        @DisplayName("Should preserve images with safe attributes")
-        void shouldPreserveImagesWithSafeAttributes() {
-            // Given
-            String html = "<img src=\"https://example.com/image.jpg\" alt=\"Description\" />";
-
-            // When
-            String result = contentService.sanitizeHtml(html);
-
-            // Then
-            assertThat(result).isEqualTo(html);
-        }
-
-        @Test
-        @DisplayName("Should preserve links with safe href")
-        void shouldPreserveLinksWithSafeHref() {
-            // Given
-            String html = "<a href=\"https://example.com\">Link</a>";
-
+        void shouldPreserveSafeHtmlContent(String html) {
             // When
             String result = contentService.sanitizeHtml(html);
 
@@ -180,10 +133,11 @@ class ContentServiceTest {
             String result = contentService.sanitizeHtml(html);
 
             // Then
-            assertThat(result).doesNotContain("<script>");
-            assertThat(result).doesNotContain("javascript:");
-            assertThat(result).doesNotContain("onclick=");
-            assertThat(result).doesNotContain("onerror=");
+            assertThat(result)
+                    .doesNotContain("<script>")
+                    .doesNotContain("javascript:")
+                    .doesNotContain("onclick=")
+                    .doesNotContain("onerror=");
         }
     }
 }

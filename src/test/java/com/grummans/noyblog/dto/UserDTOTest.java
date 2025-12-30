@@ -20,9 +20,9 @@ class UserDTOTest {
             UserDTO.AuthorDTO dto = new UserDTO.AuthorDTO(1, "grummans", "Grummans");
 
             // Then
-            assertThat(dto.getId()).isEqualTo(1);
-            assertThat(dto.getUsername()).isEqualTo("grummans");
-            assertThat(dto.getDisplayName()).isEqualTo("Grummans");
+            assertThat(dto)
+                    .extracting(UserDTO.AuthorDTO::getId, UserDTO.AuthorDTO::getUsername, UserDTO.AuthorDTO::getDisplayName)
+                    .containsExactly(1, "grummans", "Grummans");
         }
 
         @Test
@@ -35,9 +35,9 @@ class UserDTOTest {
             dto.setDisplayName("John Doe");
 
             // Then
-            assertThat(dto.getId()).isEqualTo(2);
-            assertThat(dto.getUsername()).isEqualTo("john");
-            assertThat(dto.getDisplayName()).isEqualTo("John Doe");
+            assertThat(dto)
+                    .extracting(UserDTO.AuthorDTO::getId, UserDTO.AuthorDTO::getUsername, UserDTO.AuthorDTO::getDisplayName)
+                    .containsExactly(2, "john", "John Doe");
         }
 
         @Test
@@ -49,9 +49,10 @@ class UserDTOTest {
             UserDTO.AuthorDTO dto3 = new UserDTO.AuthorDTO(2, "john", "John");
 
             // Then
-            assertThat(dto1).isEqualTo(dto2);
-            assertThat(dto1).isNotEqualTo(dto3);
-            assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
+            assertThat(dto1)
+                    .isEqualTo(dto2)
+                    .isNotEqualTo(dto3)
+                    .hasSameHashCodeAs(dto2);
         }
 
         @Test
@@ -64,8 +65,9 @@ class UserDTOTest {
             String toString = dto.toString();
 
             // Then
-            assertThat(toString).contains("grummans");
-            assertThat(toString).contains("Grummans");
+            assertThat(toString)
+                    .contains("grummans")
+                    .contains("Grummans");
         }
     }
 }

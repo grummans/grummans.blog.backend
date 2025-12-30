@@ -29,7 +29,6 @@ public class PostAttachmentController {
      * @param altText Optional description (for images/documents)
      * @return PostAttachment with full metadata
      */
-    @CrossOrigin
     @PostMapping(consumes = {"multipart/form-data"})
     public ApiResponse<PostAttachments> uploadAttachment(@PathVariable int postId,
                                                          @RequestPart("file") MultipartFile file, @RequestPart(value = "altText", required = false) String altText) {
@@ -53,7 +52,6 @@ public class PostAttachmentController {
      * @param postId The post ID
      * @return List of attachments
      */
-    @CrossOrigin
     @GetMapping
     public ApiResponse<List<PostAttachments>> getAttachments(@PathVariable int postId) {
         List<PostAttachments> attachments = fileService.getPostAttachments(postId);
@@ -72,7 +70,6 @@ public class PostAttachmentController {
      * @param attachmentId The attachment ID
      * @return Success response
      */
-    @CrossOrigin
     @DeleteMapping("/{attachmentId}")
     public ApiResponse<Void> deleteAttachment(@PathVariable int postId, @PathVariable int attachmentId) {
 

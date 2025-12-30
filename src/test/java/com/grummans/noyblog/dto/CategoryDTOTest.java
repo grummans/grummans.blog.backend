@@ -20,10 +20,9 @@ class CategoryDTOTest {
             CategoryDTO.Req req = new CategoryDTO.Req("Technology", "technology", "Tech articles", "#3498db");
 
             // Then
-            assertThat(req.getName()).isEqualTo("Technology");
-            assertThat(req.getSlug()).isEqualTo("technology");
-            assertThat(req.getDescription()).isEqualTo("Tech articles");
-            assertThat(req.getColor()).isEqualTo("#3498db");
+            assertThat(req)
+                    .extracting(CategoryDTO.Req::getName, CategoryDTO.Req::getSlug, CategoryDTO.Req::getDescription, CategoryDTO.Req::getColor)
+                    .containsExactly("Technology", "technology", "Tech articles", "#3498db");
         }
 
         @Test
@@ -37,10 +36,9 @@ class CategoryDTOTest {
             req.setColor("#e74c3c");
 
             // Then
-            assertThat(req.getName()).isEqualTo("Lifestyle");
-            assertThat(req.getSlug()).isEqualTo("lifestyle");
-            assertThat(req.getDescription()).isEqualTo("Life articles");
-            assertThat(req.getColor()).isEqualTo("#e74c3c");
+            assertThat(req)
+                    .extracting(CategoryDTO.Req::getName, CategoryDTO.Req::getSlug, CategoryDTO.Req::getDescription, CategoryDTO.Req::getColor)
+                    .containsExactly("Lifestyle", "lifestyle", "Life articles", "#e74c3c");
         }
     }
 
@@ -55,10 +53,9 @@ class CategoryDTOTest {
             CategoryDTO.Res res = new CategoryDTO.Res("Technology", "technology", "Tech articles", "#3498db");
 
             // Then
-            assertThat(res.getName()).isEqualTo("Technology");
-            assertThat(res.getSlug()).isEqualTo("technology");
-            assertThat(res.getDescription()).isEqualTo("Tech articles");
-            assertThat(res.getColor()).isEqualTo("#3498db");
+            assertThat(res)
+                    .extracting(CategoryDTO.Res::getName, CategoryDTO.Res::getSlug, CategoryDTO.Res::getDescription, CategoryDTO.Res::getColor)
+                    .containsExactly("Technology", "technology", "Tech articles", "#3498db");
         }
     }
 
@@ -73,10 +70,9 @@ class CategoryDTOTest {
             CategoryDTO.CategorySimpleDTO dto = new CategoryDTO.CategorySimpleDTO(1, "Technology", "technology", 15);
 
             // Then
-            assertThat(dto.getId()).isEqualTo(1);
-            assertThat(dto.getName()).isEqualTo("Technology");
-            assertThat(dto.getSlug()).isEqualTo("technology");
-            assertThat(dto.getPostCount()).isEqualTo(15);
+            assertThat(dto)
+                    .extracting(CategoryDTO.CategorySimpleDTO::getId, CategoryDTO.CategorySimpleDTO::getName, CategoryDTO.CategorySimpleDTO::getSlug, CategoryDTO.CategorySimpleDTO::getPostCount)
+                    .containsExactly(1, "Technology", "technology", 15);
         }
 
         @Test
@@ -90,10 +86,9 @@ class CategoryDTOTest {
             dto.setPostCount(8);
 
             // Then
-            assertThat(dto.getId()).isEqualTo(2);
-            assertThat(dto.getName()).isEqualTo("Lifestyle");
-            assertThat(dto.getSlug()).isEqualTo("lifestyle");
-            assertThat(dto.getPostCount()).isEqualTo(8);
+            assertThat(dto)
+                    .extracting(CategoryDTO.CategorySimpleDTO::getId, CategoryDTO.CategorySimpleDTO::getName, CategoryDTO.CategorySimpleDTO::getSlug, CategoryDTO.CategorySimpleDTO::getPostCount)
+                    .containsExactly(2, "Lifestyle", "lifestyle", 8);
         }
 
         @Test
@@ -105,9 +100,10 @@ class CategoryDTOTest {
             CategoryDTO.CategorySimpleDTO dto3 = new CategoryDTO.CategorySimpleDTO(2, "Life", "life", 5);
 
             // Then
-            assertThat(dto1).isEqualTo(dto2);
-            assertThat(dto1).isNotEqualTo(dto3);
-            assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
+            assertThat(dto1)
+                    .isEqualTo(dto2)
+                    .isNotEqualTo(dto3)
+                    .hasSameHashCodeAs(dto2);
         }
     }
 }

@@ -18,7 +18,6 @@ public class FileController {
      * This endpoint is called when user drags/pastes file into the editor
      * Supports: .jpg, .png, .gif, .pdf, .zip, .rar, .doc, .xls, etc.
      */
-    @CrossOrigin
     @PostMapping(value = "/upload-content-file", consumes = {"multipart/form-data"})
     public ApiResponse<String> uploadContentFile(
             @RequestParam("file") MultipartFile file) {
@@ -32,7 +31,6 @@ public class FileController {
     /**
      * Upload avatar for user
      */
-    @CrossOrigin
     @PostMapping(value = "/upload-avatar", consumes = {"multipart/form-data"})
     public ApiResponse<String> uploadAvatar(
             @RequestParam("userId") int userId,
@@ -47,7 +45,6 @@ public class FileController {
     /**
      * Delete file by attachment ID
      */
-    @CrossOrigin
     @DeleteMapping("/{attachmentId}")
     public ApiResponse<Void> deleteAttachment(@PathVariable int attachmentId) {
         ApiResponse<Void> response = new ApiResponse<>();

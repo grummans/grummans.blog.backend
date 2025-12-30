@@ -15,8 +15,7 @@ public class AdminCategoryController {
 
     private final AdminCategoryService categoryService;
 
-    @CrossOrigin
-    @GetMapping()
+    @GetMapping
     public ApiResponse<List<CategoryDTO.CategorySimpleDTO>> getAllCategories() {
 
         ApiResponse<List<CategoryDTO.CategorySimpleDTO>> response = new ApiResponse<>();
@@ -26,7 +25,6 @@ public class AdminCategoryController {
         return response;
     }
 
-    @CrossOrigin
     @PostMapping("/create")
     public ApiResponse<CategoryDTO.CategorySimpleDTO> createCategory(@RequestBody CategoryDTO.Req req) {
         ApiResponse<CategoryDTO.CategorySimpleDTO> response = new ApiResponse<>();
@@ -36,7 +34,6 @@ public class AdminCategoryController {
         return response;
     }
 
-    @CrossOrigin
     @GetMapping("/{categoryId}")
     public ApiResponse<CategoryDTO.Res> getCategory(@PathVariable Integer categoryId) {
         ApiResponse<CategoryDTO.Res> response = new ApiResponse<>();
@@ -46,7 +43,6 @@ public class AdminCategoryController {
         return response;
     }
 
-    @CrossOrigin
     @PutMapping("/{categoryId}/update")
     public ApiResponse<CategoryDTO.CategorySimpleDTO> updateCategory(@PathVariable int categoryId, @RequestBody CategoryDTO.Req req) {
         ApiResponse<CategoryDTO.CategorySimpleDTO> response = new ApiResponse<>();
@@ -56,7 +52,6 @@ public class AdminCategoryController {
         return response;
     }
 
-    @CrossOrigin
     @DeleteMapping("/{categoryId}")
     public ApiResponse<Void> deleteCategory(@PathVariable int categoryId) {
         ApiResponse<Void> response = new ApiResponse<>();

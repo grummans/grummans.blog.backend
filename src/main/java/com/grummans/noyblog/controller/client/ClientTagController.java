@@ -4,7 +4,6 @@ import com.grummans.noyblog.configuration.ApiResponse;
 import com.grummans.noyblog.dto.TagDTO;
 import com.grummans.noyblog.services.client.ClientTagService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +17,6 @@ public class ClientTagController {
 
     private final ClientTagService clientTagService;
 
-    @CrossOrigin
     @GetMapping
     public ApiResponse<List<TagDTO.TagSimpleDTO>> getAllTags() {
         ApiResponse<List<TagDTO.TagSimpleDTO>> response = new ApiResponse<>();

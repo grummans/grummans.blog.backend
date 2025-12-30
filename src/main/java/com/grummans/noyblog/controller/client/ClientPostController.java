@@ -15,7 +15,6 @@ public class ClientPostController {
 
     private final ClientPostService postService;
 
-    @CrossOrigin
     @GetMapping
     public ApiResponse<List<PostDTO.PostForClientDTO>> getAllPosts() {
         ApiResponse<List<PostDTO.PostForClientDTO>> response = new ApiResponse<>();
@@ -25,7 +24,6 @@ public class ClientPostController {
         return response;
     }
 
-    @CrossOrigin
     @GetMapping("/featured")
     public ApiResponse<List<PostDTO.PostForClientDTO>> getFeaturedPosts() {
         ApiResponse<List<PostDTO.PostForClientDTO>> response = new ApiResponse<>();
@@ -35,7 +33,6 @@ public class ClientPostController {
         return response;
     }
 
-    @CrossOrigin
     @GetMapping("/{postId}")
     public ApiResponse<PostDTO.Res> getDetailPost(@PathVariable int postId) {
         ApiResponse<PostDTO.Res> response = new ApiResponse<>();
@@ -45,7 +42,6 @@ public class ClientPostController {
         return response;
     }
 
-    @CrossOrigin
     @GetMapping("/slug/{slug}")
     public ApiResponse<PostDTO.Res> getDetailPostBySlug(@PathVariable String slug) {
         ApiResponse<PostDTO.Res> response = new ApiResponse<>();

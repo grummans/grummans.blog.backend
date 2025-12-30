@@ -15,8 +15,7 @@ public class AdminTagController {
 
     private final AdminTagService tagService;
 
-    @CrossOrigin
-    @GetMapping()
+    @GetMapping
     public ApiResponse<List<TagDTO.TagSimpleDTO>> getAllTags() {
         ApiResponse<List<TagDTO.TagSimpleDTO>> response = new ApiResponse<>();
         response.setCode(200);
@@ -25,7 +24,6 @@ public class AdminTagController {
         return response;
     }
 
-    @CrossOrigin
     @PostMapping("/create")
     public ApiResponse<TagDTO.TagSimpleDTO> createTag(@RequestBody TagDTO.Req req) {
         ApiResponse<TagDTO.TagSimpleDTO> response = new ApiResponse<>();
@@ -35,7 +33,6 @@ public class AdminTagController {
         return response;
     }
 
-    @CrossOrigin
     @GetMapping("/{tagId}")
     public ApiResponse<TagDTO.TagSimpleDTO> getTag(@PathVariable Integer tagId) {
         ApiResponse<TagDTO.TagSimpleDTO> response = new ApiResponse<>();
@@ -45,7 +42,6 @@ public class AdminTagController {
         return response;
     }
 
-    @CrossOrigin
     @PutMapping("/{tagId}/update")
     public ApiResponse<TagDTO.TagSimpleDTO> updateTag(@PathVariable int tagId, @RequestBody TagDTO.Req req) {
         ApiResponse<TagDTO.TagSimpleDTO> response = new ApiResponse<>();
@@ -55,7 +51,6 @@ public class AdminTagController {
         return response;
     }
 
-    @CrossOrigin
     @DeleteMapping("/{tagId}")
     public ApiResponse<Void> deleteTag(@PathVariable int tagId) {
         ApiResponse<Void> response = new ApiResponse<>();

@@ -20,8 +20,9 @@ class TagDTOTest {
             TagDTO.Req req = new TagDTO.Req("Java", "java");
 
             // Then
-            assertThat(req.getName()).isEqualTo("Java");
-            assertThat(req.getSlug()).isEqualTo("java");
+            assertThat(req)
+                    .extracting(TagDTO.Req::getName, TagDTO.Req::getSlug)
+                    .containsExactly("Java", "java");
         }
 
         @Test
@@ -33,8 +34,9 @@ class TagDTOTest {
             req.setSlug("spring");
 
             // Then
-            assertThat(req.getName()).isEqualTo("Spring");
-            assertThat(req.getSlug()).isEqualTo("spring");
+            assertThat(req)
+                    .extracting(TagDTO.Req::getName, TagDTO.Req::getSlug)
+                    .containsExactly("Spring", "spring");
         }
     }
 
@@ -49,10 +51,9 @@ class TagDTOTest {
             TagDTO.TagSimpleDTO dto = new TagDTO.TagSimpleDTO(1, "Java", "java", 10);
 
             // Then
-            assertThat(dto.getId()).isEqualTo(1);
-            assertThat(dto.getName()).isEqualTo("Java");
-            assertThat(dto.getSlug()).isEqualTo("java");
-            assertThat(dto.getPostCount()).isEqualTo(10);
+            assertThat(dto)
+                    .extracting(TagDTO.TagSimpleDTO::getId, TagDTO.TagSimpleDTO::getName, TagDTO.TagSimpleDTO::getSlug, TagDTO.TagSimpleDTO::getPostCount)
+                    .containsExactly(1, "Java", "java", 10);
         }
 
         @Test
@@ -66,10 +67,9 @@ class TagDTOTest {
             dto.setPostCount(5);
 
             // Then
-            assertThat(dto.getId()).isEqualTo(2);
-            assertThat(dto.getName()).isEqualTo("Spring");
-            assertThat(dto.getSlug()).isEqualTo("spring");
-            assertThat(dto.getPostCount()).isEqualTo(5);
+            assertThat(dto)
+                    .extracting(TagDTO.TagSimpleDTO::getId, TagDTO.TagSimpleDTO::getName, TagDTO.TagSimpleDTO::getSlug, TagDTO.TagSimpleDTO::getPostCount)
+                    .containsExactly(2, "Spring", "spring", 5);
         }
 
         @Test
@@ -81,9 +81,10 @@ class TagDTOTest {
             TagDTO.TagSimpleDTO dto3 = new TagDTO.TagSimpleDTO(2, "Spring", "spring", 5);
 
             // Then
-            assertThat(dto1).isEqualTo(dto2);
-            assertThat(dto1).isNotEqualTo(dto3);
-            assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
+            assertThat(dto1)
+                    .isEqualTo(dto2)
+                    .isNotEqualTo(dto3)
+                    .hasSameHashCodeAs(dto2);
         }
     }
 }

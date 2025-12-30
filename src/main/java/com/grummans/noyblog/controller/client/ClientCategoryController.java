@@ -4,7 +4,6 @@ import com.grummans.noyblog.configuration.ApiResponse;
 import com.grummans.noyblog.dto.CategoryDTO;
 import com.grummans.noyblog.services.client.ClientCategoryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +17,6 @@ public class ClientCategoryController {
 
     private final ClientCategoryService clientCategoryService;
 
-    @CrossOrigin
     @GetMapping
     public ApiResponse<List<CategoryDTO.CategorySimpleDTO>> getAllCategories() {
         ApiResponse<List<CategoryDTO.CategorySimpleDTO>> response = new ApiResponse<>();

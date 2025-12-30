@@ -17,7 +17,6 @@ public class AdminPostController {
     private final AdminPostService postService;
 
     @GetMapping("/list")
-    @CrossOrigin
     public ApiResponse<PageResponse<PostDTO.Res>> getAllPosts(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String status,
@@ -42,7 +41,6 @@ public class AdminPostController {
      * Get all draft posts
      */
     @GetMapping("/drafts")
-    @CrossOrigin
     public ApiResponse<PageResponse<PostDTO.Res>> getAllDrafts(
             @RequestParam(required = false) String title,
             @RequestParam(defaultValue = "0") int page,
@@ -69,7 +67,6 @@ public class AdminPostController {
      * - If req.id exists: Update existing draft
      * - Allows incomplete data (category, tags, content can be null/empty)
      */
-    @CrossOrigin
     @PostMapping(value = "/save-draft", consumes = {"multipart/form-data"})
     public ApiResponse<PostDTO.SimplePostDTO> saveDraft(
             @RequestPart("post") PostDTO.Req req,
@@ -91,7 +88,6 @@ public class AdminPostController {
      * - Requires complete post data (title, slug, category, tags, content)
      * - Validates all required fields before publishing
      */
-    @CrossOrigin
     @PostMapping(value = "/publish", consumes = {"multipart/form-data"})
     public ApiResponse<PostDTO.SimplePostDTO> publishPost(
             @RequestPart("post") PostDTO.Req req,
@@ -107,7 +103,6 @@ public class AdminPostController {
         return response;
     }
 
-    @CrossOrigin
     @GetMapping("/{postId}")
     public ApiResponse<PostDTO.Res> getPostById(@PathVariable int postId) {
         ApiResponse<PostDTO.Res> response = new ApiResponse<>();
@@ -117,7 +112,6 @@ public class AdminPostController {
         return response;
     }
 
-    @CrossOrigin
     @GetMapping("/{postId}/edit")
     public ApiResponse<PostDTO.Res> getPostForEdit(@PathVariable int postId) {
         ApiResponse<PostDTO.Res> response = new ApiResponse<>();
@@ -134,7 +128,6 @@ public class AdminPostController {
      * - Updates content, tags, category, featured image
      * - Keeps publishedAt, updates updatedAt
      */
-    @CrossOrigin
     @PutMapping(value = "/{postId}", consumes = {"multipart/form-data"})
     public ApiResponse<PostDTO.SimplePostDTO> updatePublishedPost(
             @PathVariable int postId,
@@ -149,7 +142,6 @@ public class AdminPostController {
         return response;
     }
 
-    @CrossOrigin
     @DeleteMapping("/{postId}")
     public ApiResponse<Void> deletePost(@PathVariable int postId) {
         ApiResponse<Void> response = new ApiResponse<>();
