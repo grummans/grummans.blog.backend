@@ -1,10 +1,16 @@
-# Application configuration for NoyBlog
-# Database connection settings
+# Application configuration for NoyBlog - Local Development
+# Database connection settings (use environment variables or defaults for local dev)
 spring:
   datasource:
-    url: jdbc:postgresql://100.64.0.1:5432/blogdb
-    username: grummans
-    password: WGEM1bUYD8nKMUd4
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/blogdb}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+
+# MinIO configuration
+minio:
+  accessKey: ${MINIO_ACCESS_KEY:minio}
+  secretKey: ${MINIO_SECRET_KEY:minio123}
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
 
 server:
   port: 8085

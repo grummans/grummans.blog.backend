@@ -113,7 +113,23 @@ generated-test-sources/
 
 # Keep application.yml template but ignore local overrides
 !application.yml.template
-application-local.yml
-application-dev.yml
-application-prod.yml
+
+# ===========================================
+# SENSITIVE FILES - NEVER COMMIT THESE!
+# ===========================================
+# Environment files (all environments)
+.env
+.env.local
+.env.dev
+.env.prod
+.env.*.local
+
+# MinIO config (legacy - now in application.yml)
+**/minio/MinioConfig.properties
+
+# Application config with credentials
+# Uncomment these if you want to keep credentials out of Git
+# application-local.yml
+# application-dev.yml
+# application-prod.yml
 

@@ -1,10 +1,16 @@
-# Application configuration for NoyBlog
+# Application configuration for NoyBlog - Development
 # Database connection settings
 spring:
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+
+# MinIO configuration
+minio:
+  accessKey: ${MINIO_ACCESS_KEY}
+  secretKey: ${MINIO_SECRET_KEY}
+  endpoint: ${MINIO_ENDPOINT}
 
 server:
   port: 8085
