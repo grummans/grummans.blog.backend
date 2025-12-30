@@ -8,12 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
@@ -32,7 +31,7 @@ class ClientPostControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private ClientPostService clientPostService;
 
     private PostDTO.PostForClientDTO testPostDTO;
@@ -55,7 +54,7 @@ class ClientPostControllerTest {
     @DisplayName("GET /c/posts - Should return all posts")
     void shouldReturnAllPosts() throws Exception {
         // Given
-        List<PostDTO.PostForClientDTO> posts = Arrays.asList(testPostDTO);
+        List<PostDTO.PostForClientDTO> posts = List.of(testPostDTO);
         when(clientPostService.getAllPosts()).thenReturn(posts);
 
         // When/Then
@@ -72,7 +71,7 @@ class ClientPostControllerTest {
     @DisplayName("GET /c/posts/featured - Should return featured posts")
     void shouldReturnFeaturedPosts() throws Exception {
         // Given
-        List<PostDTO.PostForClientDTO> posts = Arrays.asList(testPostDTO);
+        List<PostDTO.PostForClientDTO> posts = List.of(testPostDTO);
         when(clientPostService.getFeaturedPosts()).thenReturn(posts);
 
         // When/Then
