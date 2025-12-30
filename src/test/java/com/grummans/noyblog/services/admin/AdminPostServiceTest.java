@@ -38,7 +38,6 @@ class AdminPostServiceTest {
     @Mock
     private UsersRepository usersRepository;
 
-    @SuppressWarnings("unused") // Required for @InjectMocks
     @Mock
     private TagsRepository tagsRepository;
 
@@ -400,6 +399,104 @@ class AdminPostServiceTest {
     class SaveAndPublishPostTests {
 
         @Test
+        @DisplayName("Should publish new post successfully")
+        void shouldPublishNewPostSuccessfully() {
+            // Given
+            PostDTO.Req req = new PostDTO.Req();
+            req.setTitle("New Post");
+            req.setSlug("new-post");
+            req.setContent("<p>Content</p>");
+            req.setCategoryId(1);
+            req.setTagId(List.of(1));
+            req.setAuthorUsername("grummans");
+
+            Posts newPost = new Posts();
+            newPost.setId(1);
+            newPost.setTitle("New Post");
+            newPost.setStatus("PUBLISHED");
+
+            PostDTO.SimplePostDTO simplePostDTO = new PostDTO.SimplePostDTO();
+            simplePostDTO.setId(1);
+
+            when(contentService.sanitizeHtml(anyString())).thenReturn("<p>Content</p>");
+            when(postMapper.toPost(any(PostDTO.Req.class))).thenReturn(newPost);
+            when(usersRepository.findIdByUsername("grummans")).thenReturn(1);
+            when(postRepository.save(any(Posts.class))).thenReturn(newPost);
+            when(postRepository.findById(1)).thenReturn(Optional.of(newPost)); // For updatePostTags
+            when(fileService.extractFileUrlsFromContent(anyString())).thenReturn(new ArrayList<>());
+            when(fileService.moveContentFilesToPost(anyInt(), anyList())).thenReturn(new java.util.HashMap<>());
+            when(tagsRepository.findById(1)).thenReturn(Optional.of(new Tags()));
+            when(postMapper.toSimplePostDTO(any(Posts.class))).thenReturn(simplePostDTO);
+
+            // When
+            PostDTO.SimplePostDTO result = adminPostService.saveAndPublishPost(req, null);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(1);
+            verify(postRepository, atLeastOnce()).save(any(Posts.class));
+        }
+
+        @Test
+        @DisplayName("Should publish existing draft successfully")
+        void shouldPublishExistingDraftSuccessfully() {
+            // Given
+            PostDTO.Req req = new PostDTO.Req();
+            req.setId(1);
+            req.setTitle("Draft to Publish");
+            req.setSlug("draft-to-publish");
+            req.setContent("<p>Content</p>");
+            req.setCategoryId(1);
+            req.setTagId(List.of(1));
+
+            Posts draftPost = new Posts();
+            draftPost.setId(1);
+            draftPost.setStatus("DRAFT");
+
+            PostDTO.SimplePostDTO simplePostDTO = new PostDTO.SimplePostDTO();
+            simplePostDTO.setId(1);
+
+            when(contentService.sanitizeHtml(anyString())).thenReturn("<p>Content</p>");
+            when(postRepository.findById(1)).thenReturn(Optional.of(draftPost));
+            when(postRepository.save(any(Posts.class))).thenReturn(draftPost);
+            when(fileService.extractFileUrlsFromContent(anyString())).thenReturn(new ArrayList<>());
+            when(fileService.moveContentFilesToPost(anyInt(), anyList())).thenReturn(new java.util.HashMap<>());
+            when(tagsRepository.findById(1)).thenReturn(Optional.of(new Tags()));
+            when(postMapper.toSimplePostDTO(any(Posts.class))).thenReturn(simplePostDTO);
+
+            // When
+            PostDTO.SimplePostDTO result = adminPostService.saveAndPublishPost(req, null);
+
+            // Then
+            assertThat(result).isNotNull();
+            verify(postRepository, atLeastOnce()).findById(1);
+            verify(postRepository, atLeastOnce()).save(any(Posts.class));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when publishing already published post")
+        void shouldThrowExceptionWhenPublishingAlreadyPublishedPost() {
+            // Given
+            PostDTO.Req req = new PostDTO.Req();
+            req.setId(1);
+            req.setTitle("Published Post");
+            req.setSlug("published-post");
+            req.setCategoryId(1);
+            req.setTagId(List.of(1));
+
+            Posts publishedPost = new Posts();
+            publishedPost.setId(1);
+            publishedPost.setStatus("PUBLISHED");
+
+            when(postRepository.findById(1)).thenReturn(Optional.of(publishedPost));
+
+            // When/Then
+            assertThatThrownBy(() -> adminPostService.saveAndPublishPost(req, null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Cannot publish");
+        }
+
+        @Test
         @DisplayName("Should throw exception when title is missing")
         void shouldThrowExceptionWhenTitleIsMissing() {
             // Given
@@ -463,6 +560,34 @@ class AdminPostServiceTest {
     @Nested
     @DisplayName("updatePublishedPost Tests")
     class UpdatePublishedPostTests {
+
+        @Test
+        @DisplayName("Should update published post successfully")
+        void shouldUpdatePublishedPostSuccessfully() {
+            // Given
+            Posts publishedPost = new Posts();
+            publishedPost.setId(1);
+            publishedPost.setStatus("PUBLISHED");
+            publishedPost.setContent("<p>Old content</p>");
+
+            PostDTO.SimplePostDTO simplePostDTO = new PostDTO.SimplePostDTO();
+            simplePostDTO.setId(1);
+
+            when(postRepository.findById(1)).thenReturn(Optional.of(publishedPost));
+            when(fileService.extractFileUrlsFromContent(anyString())).thenReturn(new ArrayList<>());
+            when(contentService.sanitizeHtml(anyString())).thenReturn("<p>New content</p>");
+            when(postRepository.save(any(Posts.class))).thenReturn(publishedPost);
+            when(fileService.moveContentFilesToPost(anyInt(), anyList())).thenReturn(new java.util.HashMap<>());
+            when(tagsRepository.findById(1)).thenReturn(Optional.of(new Tags()));
+            when(postMapper.toSimplePostDTO(any(Posts.class))).thenReturn(simplePostDTO);
+
+            // When
+            PostDTO.SimplePostDTO result = adminPostService.updatePublishedPost(1, testPostReq, null);
+
+            // Then
+            assertThat(result).isNotNull();
+            verify(postRepository).save(any(Posts.class));
+        }
 
         @Test
         @DisplayName("Should throw exception when updating non-published post")

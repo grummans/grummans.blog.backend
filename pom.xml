@@ -36,17 +36,9 @@
         <java.version>21</java.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
 
-        <!-- SonarQube Coverage Exclusions -->
-        <!-- Exclude files that don't contain business logic -->
-        <sonar.coverage.exclusions>
-            **/mapper/*Mapper.java,
-            **/mapper/*MapperImpl.java,
-            **/dto/*DTO.java,
-            **/model/*.java,
-            **/configuration/*.java,
-            **/exceptions/*Exception.java,
-            **/*Application.java
-        </sonar.coverage.exclusions>
+        <!-- SonarQube Coverage Exclusions - Exclude files without business logic -->
+        <!-- Also exclude FileService as it directly interacts with MinIO (requires integration tests) -->
+        <sonar.coverage.exclusions>**/mapper/**,**/dto/**,**/model/**,**/configuration/**,**/exceptions/**,**/*Application.java,**/FileService.java</sonar.coverage.exclusions>
     </properties>
     <dependencies>
         <dependency>
