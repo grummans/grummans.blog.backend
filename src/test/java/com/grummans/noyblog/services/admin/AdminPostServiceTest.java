@@ -38,6 +38,10 @@ class AdminPostServiceTest {
     @Mock
     private UsersRepository usersRepository;
 
+    @SuppressWarnings("unused") // Required for @InjectMocks
+    @Mock
+    private TagsRepository tagsRepository;
+
     @Mock
     private CategoryRepository categoryRepository;
 
@@ -49,6 +53,10 @@ class AdminPostServiceTest {
 
     @Mock
     private CategoryMapper categoryMapper;
+
+    @SuppressWarnings("unused") // Required for @InjectMocks
+    @Mock
+    private TagMapper tagMapper;
 
     @Mock
     private FileService fileService;
