@@ -41,16 +41,4 @@ public class FileController {
         response.setMessage("Avatar uploaded successfully");
         return response;
     }
-
-    /**
-     * Delete file by attachment ID
-     */
-    @DeleteMapping("/{attachmentId}")
-    public ApiResponse<Void> deleteAttachment(@PathVariable int attachmentId) {
-        ApiResponse<Void> response = new ApiResponse<>();
-        fileService.deleteAttachment(attachmentId);
-        response.setCode(200);
-        response.setMessage("File deleted successfully");
-        return response;
-    }
 }

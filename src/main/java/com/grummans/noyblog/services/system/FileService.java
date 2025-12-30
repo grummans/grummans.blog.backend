@@ -340,12 +340,18 @@ public class FileService {
     /**
      * Delete a post attachment (removes from both DB and MinIO)
      *
+     * @param postId       The post ID that owns the attachment
      * @param attachmentId The attachment ID to delete
      */
-    public void deleteAttachment(int attachmentId) {
+    public void deleteAttachment(int postId, int attachmentId) {
         PostAttachments postAttachment = postAttachmentRepository.findById(attachmentId)
                 .orElseThrow(
                         () -> new FileUploadException("Attachment not found with id: " + attachmentId));
+
+        // Validate that attachment belongs to the specified post
+        if (postAttachment.getPostId() != postId) {
+            throw new FileUploadException("Attachment " + attachmentId + " does not belong to post " + postId);
+        }
 
         try {
             // Delete from MinIO storage

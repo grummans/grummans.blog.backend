@@ -122,7 +122,7 @@ class PostAttachmentControllerTest {
         @DisplayName("Should delete attachment successfully")
         void shouldDeleteAttachmentSuccessfully() throws Exception {
             // Given
-            doNothing().when(fileService).deleteAttachment(1);
+            doNothing().when(fileService).deleteAttachment(1, 1);
 
             // When/Then
             mockMvc.perform(delete("/a/posts/1/attachments/1"))
@@ -130,7 +130,7 @@ class PostAttachmentControllerTest {
                     .andExpect(jsonPath("$.code", is(200)))
                     .andExpect(jsonPath("$.message", containsString("deleted")));
 
-            verify(fileService).deleteAttachment(1);
+            verify(fileService).deleteAttachment(1, 1);
         }
     }
 }

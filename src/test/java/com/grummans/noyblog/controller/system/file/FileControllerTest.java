@@ -86,25 +86,5 @@ class FileControllerTest {
             verify(fileService).uploadUserAvatar(eq(1), any());
         }
     }
-
-    @Nested
-    @DisplayName("DELETE /file/{attachmentId} Tests")
-    class DeleteAttachmentTests {
-
-        @Test
-        @DisplayName("Should delete attachment successfully")
-        void shouldDeleteAttachmentSuccessfully() throws Exception {
-            // Given
-            doNothing().when(fileService).deleteAttachment(1);
-
-            // When/Then
-            mockMvc.perform(delete("/file/1"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.code", is(200)))
-                    .andExpect(jsonPath("$.message", containsString("deleted")));
-
-            verify(fileService).deleteAttachment(1);
-        }
-    }
 }
 

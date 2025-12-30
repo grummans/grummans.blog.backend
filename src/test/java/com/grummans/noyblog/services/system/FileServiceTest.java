@@ -314,9 +314,25 @@ class FileServiceTest {
             when(postAttachmentRepository.findById(999)).thenReturn(Optional.empty());
 
             // When/Then
-            assertThatThrownBy(() -> fileService.deleteAttachment(999))
+            assertThatThrownBy(() -> fileService.deleteAttachment(1, 999))
                     .isInstanceOf(FileUploadException.class)
                     .hasMessageContaining("not found");
+        }
+
+        @Test
+        @DisplayName("Should throw exception when attachment does not belong to post")
+        void shouldThrowExceptionWhenAttachmentNotBelongToPost() {
+            // Given
+            PostAttachments attachment = new PostAttachments();
+            attachment.setId(1);
+            attachment.setPostId(2); // Different post ID
+
+            when(postAttachmentRepository.findById(1)).thenReturn(Optional.of(attachment));
+
+            // When/Then
+            assertThatThrownBy(() -> fileService.deleteAttachment(1, 1))
+                    .isInstanceOf(FileUploadException.class)
+                    .hasMessageContaining("does not belong to post");
         }
     }
 

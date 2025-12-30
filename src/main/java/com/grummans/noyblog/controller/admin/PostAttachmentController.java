@@ -73,7 +73,7 @@ public class PostAttachmentController {
     @DeleteMapping("/{attachmentId}")
     public ApiResponse<Void> deleteAttachment(@PathVariable int postId, @PathVariable int attachmentId) {
 
-        fileService.deleteAttachment(attachmentId);
+        fileService.deleteAttachment(postId, attachmentId);
 
         ApiResponse<Void> response = new ApiResponse<>();
         response.setCode(200);
