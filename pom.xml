@@ -95,6 +95,12 @@
             <artifactId>flexmark-html2md-converter</artifactId>
             <version>0.64.8</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/me.paulschwarz/springboot3-dotenv -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>springboot3-dotenv</artifactId>
+            <version>5.0.1</version>
+        </dependency>
     </dependencies>
 
 	<build>

@@ -1,10 +1,11 @@
 # Application configuration for NoyBlog - Local Development
-# Database connection settings (use environment variables or defaults for local dev)
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/blogdb}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${DB_LOCAL_URL}
+    username: ${DB_LOCAL_USERNAME}
+    password: ${DB_LOCAL_PASSWORD}
+    hikari:
+      schema: ${DB_LOCAL_SCHEMA}
 
 # MinIO configuration
 minio:
