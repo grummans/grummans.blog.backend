@@ -1,4 +1,5 @@
-# Test configuration - using H2 in-memory database
+# Application configuration for NoyBlog - Test Environment
+# Uses H2 in-memory database for CI/CD testing
 spring:
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
@@ -14,16 +15,15 @@ spring:
     console:
       enabled: false
 
-# MinIO test configuration (mock values)
+# MinIO test configuration (mock values - not used in tests)
 minio:
   endpoint: http://localhost:9000
   accessKey: testAccessKey
   secretKey: testSecretKey
   bucketName: test-bucket
 
-# Logging
-logging:
-  level:
-    root: WARN
-    com.grummans: DEBUG
+server:
+  port: 8085
+  servlet:
+    context-path: /api
 

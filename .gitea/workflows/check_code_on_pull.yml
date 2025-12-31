@@ -36,6 +36,7 @@ jobs:
         env:
           SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST }}
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          SPRING_PROFILES_ACTIVE: test
         run: |
           ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar \
             -Dsonar.projectKey=grummans_noyblog \
@@ -51,6 +52,7 @@ jobs:
         env:
           SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST }}
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          SPRING_PROFILES_ACTIVE: test
         run: |
           ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar \
             -Dsonar.projectKey=grummans_noyblog \
