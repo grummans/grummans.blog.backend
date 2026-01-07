@@ -6,7 +6,8 @@ on:
       - dev
 
 env:
-  CONTAINER_IMAGE_NAME: grummans/grummans.blog.backend
+  REGISTRY_DOMAIN: gitea.grummans.me
+  CONTAINER_IMAGE_NAME: grummans.blog.backend
 
 jobs:
   build:
@@ -32,7 +33,7 @@ jobs:
 
       - name: Debug tags
         run: |
-          echo "Registry: ${{ secrets.REGISTRY_DOMAIN }}"
+          echo "Registry: ${{ env.REGISTRY_DOMAIN }}"
           echo "Image: ${{ env.CONTAINER_IMAGE_NAME }}"
           echo "Owner: ${{ gitea.actor }}"
           echo "Short SHA: ${{ steps.calc_sha.outputs.short_sha }}"
@@ -44,5 +45,5 @@ jobs:
           push: true
           Dockerfile: ./Dockerfile
           tags: |
-            ${{ secrets.REGISTRY_DOMAIN }}/${{ env.CONTAINER_IMAGE_NAME }}:${{ steps.calc_sha.outputs.short_sha }}
-            ${{ secrets.REGISTRY_DOMAIN }}/${{ gitea.actor }}/${{ env.CONTAINER_IMAGE_NAME }}:latest
+            ${{ env.REGISTRY_DOMAIN }}/${{ gitea.actor }}/${{ env.CONTAINER_IMAGE_NAME }}:${{ steps.calc_sha.outputs.short_sha }}
+            ${{ env.REGISTRY_DOMAIN }}/${{ gitea.actor }}/{{ env.CONTAINER_IMAGE_NAME }}:latest
