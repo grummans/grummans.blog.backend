@@ -47,5 +47,5 @@ jobs:
           push: true
           Dockerfile: ./Dockerfile
           tags: |
-            ${{ env.REGISTRY_DOMAIN }}/${{ gitea.actor }}/${{ env.CONTAINER_IMAGE_NAME }}:${{ steps.calc_sha.outputs.short_sha }}
-            ${{ env.REGISTRY_DOMAIN }}/${{ env.CONTAINER_IMAGE_NAME }}:latest
+            ${{ secrets.REGISTRY_DOMAIN }}/${{ gitea.actor }}/${{ env.CONTAINER_IMAGE_NAME }}:${{ steps.calc_sha.outputs.short_sha }}
+            ${{ secrets.REGISTRY_DOMAIN }}/${{ gitea.actor }}/${{ env.CONTAINER_IMAGE_NAME }}:latest
