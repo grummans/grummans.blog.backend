@@ -6,7 +6,7 @@ on:
       - dev
 
 env:
-  CONTAINER_IMAGE_NAME: grummans-blog-backend
+  CONTAINER_IMAGE_NAME: grummans/grummans.blog.backend
 
 jobs:
   build:
@@ -44,5 +44,5 @@ jobs:
           push: true
           Dockerfile: ./Dockerfile
           tags: |
-            ${{ secrets.REGISTRY_DOMAIN }}/${{ gitea.actor }}/${{ env.CONTAINER_IMAGE_NAME }}:${{ steps.calc_sha.outputs.short_sha }}
+            ${{ secrets.REGISTRY_DOMAIN }}/${{ env.CONTAINER_IMAGE_NAME }}:${{ steps.calc_sha.outputs.short_sha }}
             ${{ secrets.REGISTRY_DOMAIN }}/${{ gitea.actor }}/${{ env.CONTAINER_IMAGE_NAME }}:latest
