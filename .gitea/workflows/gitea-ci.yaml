@@ -30,7 +30,8 @@ jobs:
 
       - name: Calculate short SHA
         id: calc_sha
-        run: echo "short_sha=${{ github.sha::0:7 }}" >> "$GITEA_OUTPUT"
+        run: |
+            echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v4
