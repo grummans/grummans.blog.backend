@@ -37,6 +37,7 @@ jobs:
         run: |
           echo "Registry: ${{ secrets.REGISTRY_DOMAIN }}"
           echo "Image: ${{ env.CONTAINER_IMAGE_NAME }}"
+          echo "Owner: ${{ gitea.actor }}"
           echo "Short SHA: ${{ steps.calc_sha.outputs.short_sha }}"
 
       - name: Build and Push Docker Image
@@ -46,5 +47,5 @@ jobs:
           push: true
           Dockerfile: ./Dockerfile
           tags: |
-            ${{ env.REGISTRY_DOMAIN }}/${{ env.CONTAINER_IMAGE_NAME }}:${{ steps.calc_sha.outputs.short_sha }}
+            ${{ env.REGISTRY_DOMAIN }}/${{ gitea.actor }}/${{ env.CONTAINER_IMAGE_NAME }}:${{ steps.calc_sha.outputs.short_sha }}
             ${{ env.REGISTRY_DOMAIN }}/${{ env.CONTAINER_IMAGE_NAME }}:latest
