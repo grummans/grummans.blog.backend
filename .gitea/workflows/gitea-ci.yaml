@@ -35,7 +35,7 @@ jobs:
 
       - name: Debug tags
         run: |
-          echo "Registry: ${{ env.REGISTRY_DOMAIN }}"
+          echo "Registry: ${{ secrets.REGISTRY_DOMAIN }}"
           echo "Image: ${{ env.CONTAINER_IMAGE_NAME }}"
           echo "Short SHA: ${{ steps.calc_sha.outputs.short_sha }}"
 
