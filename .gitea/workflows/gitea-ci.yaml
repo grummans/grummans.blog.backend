@@ -29,7 +29,9 @@ jobs:
       - name: Calculate short SHA
         id: calc_sha
         run: |
-            echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+            SHORT_SHA=$(git rev-parse --short=7 HEAD)
+            echo "short_sha=${SHORT_SHA}" >> $GITEA_OUTPUT
+            echo "Resolved short SHA: ${SHORT_SHA}"
 
       - name: Debug tags
         run: |
@@ -46,4 +48,4 @@ jobs:
           Dockerfile: ./Dockerfile
           tags: |
             ${{ env.REGISTRY_DOMAIN }}/${{ gitea.actor }}/${{ env.CONTAINER_IMAGE_NAME }}:${{ steps.calc_sha.outputs.short_sha }}
-            ${{ env.REGISTRY_DOMAIN }}/${{ gitea.actor }}/{{ env.CONTAINER_IMAGE_NAME }}:latest
+            ${{ env.REGISTRY_DOMAIN }}/${{ gitea.actor }}/${{ env.CONTAINER_IMAGE_NAME }}:latest

@@ -208,7 +208,7 @@ public class AdminPostService {
             post.setContent(sanitizedHtml);
             post.setContentHtml(sanitizedHtml);
 
-            int authorId = usersRepository.findIdByUsername(req.getAuthorUsername());
+            int authorId = usersRepository.findIdByUsername("admin");
             post.setAuthorId(authorId);
         }
 

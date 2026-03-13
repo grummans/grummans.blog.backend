@@ -76,7 +76,7 @@ public class FileService {
 
         try {
             uploadToMinio(storagePath, file, BUCKET_POSTS);
-            // URL format: https://minioconsole.grummans.me/posts/{postId}/featured/{uuid}.jpg
+            // URL format: {minio.endpoint}/posts/{postId}/featured/{uuid}.jpg
             return generateFileUrl(BUCKET_POSTS + "/" + storagePath);
         } catch (Exception e) {
             throw new FileUploadException("Failed to upload featured image: " + e.getMessage());
@@ -187,7 +187,7 @@ public class FileService {
         for (String fileUrl : fileUrls) {
             try {
                 // Extract storage path from URL
-                // URL format: https://minioconsole.grummans.me/posts/temp/content-files/uuid.jpg
+                // URL format: {minio.endpoint}/posts/temp/content-files/uuid.jpg
                 String storagePath = fileUrl.replace(minioEndpoint + URL_SEPARATOR, "");
 
                 // Only process temp files
@@ -374,7 +374,7 @@ public class FileService {
      * Delete a file from MinIO by its URL Extracts bucket and object name from URL and deletes the file
      *
      * @param fileUrl Full URL of the file (e.g., <a
-     *                href="https://minioconsole.grummans.me/posts/123/featured/file.jpg">...</a>)
+     *                href="{minio.endpoint}/posts/123/featured/file.jpg">...</a>)
      */
     public void deleteFileByUrl(String fileUrl) {
         if (fileUrl == null || fileUrl.trim().isEmpty()) {
@@ -384,8 +384,8 @@ public class FileService {
 
         try {
             // Extract bucket and object path from URL
-            // URL format: https://minioconsole.grummans.me/BUCKET/OBJECT_PATH
-            // Example: https://minioconsole.grummans.me/posts/123/featured/file.jpg
+            // URL format: {minio.endpoint}/BUCKET/OBJECT_PATH
+            // Example: {minio.endpoint}/posts/123/featured/file.jpg
             //   → bucket: "posts"
             //   → object: "123/featured/file.jpg"
 
