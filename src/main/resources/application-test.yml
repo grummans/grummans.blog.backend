@@ -27,3 +27,5 @@ server:
   servlet:
     context-path: /api
 
+# No CORS needed for tests as requested
+
