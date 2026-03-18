@@ -34,8 +34,15 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Prepare Maven wrapper
+        shell: bash
+        run: |
+          sed -i 's/\r$//' mvnw
+          chmod +x mvnw
+
       - name: Run unit tests and package
-        run: ./mvnw -B -ntp clean verify
+        shell: bash
+        run: bash ./mvnw -B -ntp clean verify
 
   cd:
     name: CD - Build and Push Image

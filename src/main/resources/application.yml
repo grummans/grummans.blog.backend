@@ -4,6 +4,6 @@ spring:
   application:
     name: noyblog
   profiles:
-    active: dev
+    default: dev
   banner:
     location: classpath:banner.txt

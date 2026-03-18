@@ -76,8 +76,8 @@ class AdminPostServiceTest {
     void setUp() {
         testUser = new Users();
         testUser.setId(1);
-        testUser.setUsername("grummans");
-        testUser.setDisplayName("Grummans");
+        testUser.setUsername("admin");
+        testUser.setDisplayName("Admin User");
 
         testCategory = new Categories();
         testCategory.setId(1);
@@ -326,7 +326,7 @@ class AdminPostServiceTest {
 
             when(contentService.sanitizeHtml(anyString())).thenReturn("<p>Draft content</p>");
             when(postMapper.toPost(any(PostDTO.Req.class))).thenReturn(draftPost);
-            when(usersRepository.findIdByUsername("grummans")).thenReturn(1);
+            when(usersRepository.findIdByUsername("admin")).thenReturn(1);
             when(postRepository.save(any(Posts.class))).thenReturn(draftPost);
             when(fileService.extractFileUrlsFromContent(anyString())).thenReturn(new ArrayList<>());
             when(postMapper.toSimplePostDTO(any(Posts.class))).thenReturn(simplePostDTO);
@@ -420,7 +420,7 @@ class AdminPostServiceTest {
 
             when(contentService.sanitizeHtml(anyString())).thenReturn("<p>Content</p>");
             when(postMapper.toPost(any(PostDTO.Req.class))).thenReturn(newPost);
-            when(usersRepository.findIdByUsername("grummans")).thenReturn(1);
+            when(usersRepository.findIdByUsername("admin")).thenReturn(1);
             when(postRepository.save(any(Posts.class))).thenReturn(newPost);
             when(postRepository.findById(1)).thenReturn(Optional.of(newPost)); // For updatePostTags
             when(fileService.extractFileUrlsFromContent(anyString())).thenReturn(new ArrayList<>());

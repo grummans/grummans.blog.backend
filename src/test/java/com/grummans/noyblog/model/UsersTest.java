@@ -14,8 +14,8 @@ class UsersTest {
         // When
         Users user = Users.builder()
                 .id(1)
-                .username("grummans")
-                .email("grummans@example.com")
+                .username("admin")
+                .email("admin@example.com")
                 .passwordHash("hashedPassword")
                 .displayName("Grummans")
                 .bio("A developer")
@@ -26,8 +26,8 @@ class UsersTest {
 
         // Then
         assertThat(user.getId()).isEqualTo(1);
-        assertThat(user.getUsername()).isEqualTo("grummans");
-        assertThat(user.getEmail()).isEqualTo("grummans@example.com");
+        assertThat(user.getUsername()).isEqualTo("admin");
+        assertThat(user.getEmail()).isEqualTo("admin@example.com");
         assertThat(user.getPasswordHash()).isEqualTo("hashedPassword");
         assertThat(user.getDisplayName()).isEqualTo("Grummans");
         assertThat(user.getBio()).isEqualTo("A developer");
