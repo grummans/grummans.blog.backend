@@ -63,6 +63,12 @@ public class ClientPostService {
         return mapToPostRes(post, post.getId());
     }
 
+    public List<PostDTO.DashboardPostDTO> getLatestPostsForDashboard() {
+        return postRepository.findFiveLatestPost().stream()
+                .map(postMapper::toDashboardPostDTO)
+                .toList();
+    }
+
     // ==================== HELPER METHODS ====================
 
     /**

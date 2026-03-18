@@ -5,6 +5,7 @@ import com.grummans.noyblog.model.Posts;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -24,4 +25,7 @@ public interface PostRepository extends JpaRepository<Posts, Integer> {
     Posts findBySlug(String slug);
 
     List<Posts> findByStatusAndIsFeatured(String status, boolean isFeatured);
+
+    @Query(value = "SELECT * FROM posts WHERE status = 'PUBLISHED' ORDER BY created_at DESC LIMIT 5", nativeQuery = true)
+    List<Posts> findFiveLatestPost();
 }

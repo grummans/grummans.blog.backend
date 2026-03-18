@@ -87,4 +87,14 @@ public class PostDTO {
         private int readingTimeMinutes;
         private String updatedAt;
     }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DashboardPostDTO {
+        private int id;
+        private String title;
+        private String slug;
+        private String updatedAt;
+    }
 }
