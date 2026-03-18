@@ -28,4 +28,6 @@ public interface PostMapper {
     PostDTO.SimplePostDTO toSimplePostDTO(Posts post);
 
     PostDTO.PostForClientDTO toPostDTOForClient(Posts post);
+
+    PostDTO.DashboardPostDTO toDashboardPostDTO(Posts post);
 }

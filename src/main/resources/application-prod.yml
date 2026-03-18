@@ -1,9 +1,9 @@
 # Application configuration for NoyBlog - Production
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${DB_PROD_URL}
+    username: ${DB_PROD_USERNAME}
+    password: ${DB_PROD_PASSWORD}
 
 # MinIO configuration
 minio:
