@@ -49,26 +49,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Resolve container metadata
+      - name: Extract metadata (tags, labels) for Docker
         id: meta
-        shell: bash
-        run: |
-          TAG="$(echo '${{ github.ref }}' | sed 's|refs/tags/||')"
-          SEMVER="${TAG#v}"
-          SHORT_SHA="$(git rev-parse --short=7 HEAD)"
-
-          IMAGE_OWNER="${{ github.repository_owner }}"
-          IMAGE_OWNER="${IMAGE_OWNER,,}"
-          IMAGE_REPO="ghcr.io/${IMAGE_OWNER}/${{ env.CONTAINER_IMAGE_NAME }}"
-
-          {
-            echo "short_sha=${SHORT_SHA}"
-            echo "semver=${SEMVER}"
-            echo "image_repo=${IMAGE_REPO}"
-          } >> "$GITHUB_OUTPUT"
-
-          echo "Publishing image: ${IMAGE_REPO}"
-          echo "Tags: ${SEMVER}, ${SHORT_SHA}, latest"
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ env.CONTAINER_IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+            type=sha,format=short,prefix=
+            type=raw,value=latest
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -78,7 +67,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GH_TOKEN }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -86,7 +75,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: |
-            ${{ steps.meta.outputs.image_repo }}:${{ steps.meta.outputs.semver }}
-            ${{ steps.meta.outputs.image_repo }}:${{ steps.meta.outputs.short_sha }}
-            ${{ steps.meta.outputs.image_repo }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
