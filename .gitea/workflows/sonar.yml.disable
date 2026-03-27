@@ -1,0 +1,34 @@
+name: Initialize SonarQube Main Branch
+on:
+  push:
+    branches:
+      - main # Chỉ chạy khi push code vào main
+
+jobs:
+  initialize_main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Install Maven
+        run: |
+          sudo apt update
+          sudo apt install -y maven
+
+      - name: Analyze Main Branch (Init)
+        run: >
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar
+          -Dsonar.projectKey=grummans_noyblog
+          -Dsonar.projectName='Grummans Blog'
+          -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
+          -Dsonar.token=${{ secrets.SONARQUBE_TOKEN }}
+          -DskipTests
