@@ -326,7 +326,7 @@ class AdminPostServiceTest {
 
             when(contentService.sanitizeHtml(anyString())).thenReturn("<p>Draft content</p>");
             when(postMapper.toPost(any(PostDTO.Req.class))).thenReturn(draftPost);
-            when(usersRepository.findIdByUsername("admin")).thenReturn(1);
+            when(usersRepository.findIdByUsername(nullable(String.class))).thenReturn(1);
             when(postRepository.save(any(Posts.class))).thenReturn(draftPost);
             when(fileService.extractFileUrlsFromContent(anyString())).thenReturn(new ArrayList<>());
             when(postMapper.toSimplePostDTO(any(Posts.class))).thenReturn(simplePostDTO);
