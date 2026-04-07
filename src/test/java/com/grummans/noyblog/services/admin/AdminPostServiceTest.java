@@ -420,7 +420,7 @@ class AdminPostServiceTest {
 
             when(contentService.sanitizeHtml(anyString())).thenReturn("<p>Content</p>");
             when(postMapper.toPost(any(PostDTO.Req.class))).thenReturn(newPost);
-            when(usersRepository.findIdByUsername("admin")).thenReturn(1);
+            when(usersRepository.findIdByUsername("grummans")).thenReturn(1);
             when(postRepository.save(any(Posts.class))).thenReturn(newPost);
             when(postRepository.findById(1)).thenReturn(Optional.of(newPost)); // For updatePostTags
             when(fileService.extractFileUrlsFromContent(anyString())).thenReturn(new ArrayList<>());

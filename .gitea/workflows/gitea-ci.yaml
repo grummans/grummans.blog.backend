@@ -5,11 +5,13 @@ on:
   push:
     branches:
       - main
+      - develop
     tags:
       - 'v*'
   pull_request:
     branches:
       - main
+      - develop
 
 concurrency:
   group: gitea-cicd-${{ gitea.ref }}
@@ -23,6 +25,10 @@ jobs:
   ci:
     name: CI - Maven Verify
     runs-on: ubuntu-latest
+
+    env:
+      RUNNER_TOOL_CACHE: /toolcache
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,6 +39,14 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+      
+      - name: Cache Maven local repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Prepare Maven wrapper
         shell: bash

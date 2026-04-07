@@ -16,7 +16,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 public class SecurityConfiguration {
@@ -25,8 +24,10 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/auth/login").permitAll() // public for login
+                        .requestMatchers("/c/**").permitAll() // public for client
+                        .requestMatchers("/a/**").authenticated() // authenticated for admin
+                        .anyRequest().authenticated() // all other requests require authentication
         ).formLogin(form -> form
                 .loginProcessingUrl("/auth/login")
                 .successHandler((request, response, authentication) ->
@@ -44,9 +45,7 @@ public class SecurityConfiguration {
         ).sessionManagement(sessionManagement -> sessionManagement
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .maximumSessions(1)
-        ).csrf(csrf -> csrf
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-        );
+        ).csrf(csrf -> csrf.disable());
         return http.build();
     }
 
