@@ -16,7 +16,7 @@ class UsersTest {
                 .id(1)
                 .username("admin")
                 .email("admin@example.com")
-                .passwordHash("hashedPassword")
+                .password("hashedPassword")
                 .displayName("Grummans")
                 .bio("A developer")
                 .avatarUrl("https://example.com/avatar.jpg")
@@ -28,7 +28,7 @@ class UsersTest {
         assertThat(user.getId()).isEqualTo(1);
         assertThat(user.getUsername()).isEqualTo("admin");
         assertThat(user.getEmail()).isEqualTo("admin@example.com");
-        assertThat(user.getPasswordHash()).isEqualTo("hashedPassword");
+        assertThat(user.getPassword()).isEqualTo("hashedPassword");
         assertThat(user.getDisplayName()).isEqualTo("Grummans");
         assertThat(user.getBio()).isEqualTo("A developer");
         assertThat(user.getAvatarUrl()).isEqualTo("https://example.com/avatar.jpg");
@@ -44,7 +44,7 @@ class UsersTest {
         user.setId(2);
         user.setUsername("john");
         user.setEmail("john@example.com");
-        user.setPasswordHash("hash123");
+        user.setPassword("hash123");
         user.setDisplayName("John Doe");
         user.setRole("USER");
         user.setActive(true);
@@ -66,7 +66,7 @@ class UsersTest {
                 .id(1)
                 .username("test")
                 .email("test@example.com")
-                .passwordHash("hash")
+                .password("hash")
                 .displayName("Test")
                 .bio(null)
                 .avatarUrl(null)

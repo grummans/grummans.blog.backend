@@ -11,6 +11,14 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: true
+        same-site: strict
+      timeout: 24h
 management:
   endpoints:
     web:
