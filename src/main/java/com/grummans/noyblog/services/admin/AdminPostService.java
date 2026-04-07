@@ -131,7 +131,6 @@ public class AdminPostService {
      */
     @Transactional
     public PostDTO.SimplePostDTO saveDraftPost(PostDTO.Req req, MultipartFile featuredImage) {
-        req.setAuthorUsername("admin");
         String sanitizedHtml = sanitizeContent(req.getContent());
 
         Posts post;
