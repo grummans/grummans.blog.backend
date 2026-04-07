@@ -131,7 +131,6 @@ public class AdminPostService {
      */
     @Transactional
     public PostDTO.SimplePostDTO saveDraftPost(PostDTO.Req req, MultipartFile featuredImage) {
-        req.setAuthorUsername("admin");
         String sanitizedHtml = sanitizeContent(req.getContent());
 
         Posts post;
@@ -208,7 +207,7 @@ public class AdminPostService {
             post.setContent(sanitizedHtml);
             post.setContentHtml(sanitizedHtml);
 
-            int authorId = usersRepository.findIdByUsername("admin");
+            int authorId = usersRepository.findIdByUsername(req.getAuthorUsername());
             post.setAuthorId(authorId);
         }
 
