@@ -13,10 +13,8 @@ public class ContentService {
             return "";
         }
 
-        // Basic sanitization - remove dangerous elements/attributes
-        // For production, consider using OWASP Java HTML Sanitizer
-        return html.replaceAll("<script[^>]*>.*?</script>", "") // Remove script tags
-                .replace("javascript:", "") // Remove javascript: protocols
-                .replaceAll("on\\w+\\s*=\\s*[\"'][^\"']*[\"']", ""); // Remove event handlers
+        // Basic sanitization - removed for Markdown as it can strip code blocks.
+        // For production, consider using markdown-specific sanitizer or frontend handling
+        return html;
     }
 }
