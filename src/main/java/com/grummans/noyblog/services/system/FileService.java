@@ -585,34 +585,6 @@ public class FileService {
 
         List<String> fileUrls = new java.util.ArrayList<>();
 
-        // Pattern to match img src: <img src="url" ...>
-        java.util.regex.Pattern imgPattern = java.util.regex.Pattern.compile(
-                "<img[^>]+src=\"([^\"]+)\"",
-                java.util.regex.Pattern.CASE_INSENSITIVE
-        );
-        java.util.regex.Matcher imgMatcher = imgPattern.matcher(htmlContent);
-        while (imgMatcher.find()) {
-            String url = imgMatcher.group(1);
-            // Only add URLs from our MinIO endpoint
-            if (url.startsWith(minioEndpoint)) {
-                fileUrls.add(url);
-            }
-        }
-
-        // Pattern to match <a> tags with file links: <a href="url" ...>
-        // Use simpler regex and validate extension in code
-        java.util.regex.Pattern linkPattern = java.util.regex.Pattern.compile(
-                "<a[^>]+href=\"([^\"]+)\"",
-                java.util.regex.Pattern.CASE_INSENSITIVE
-        );
-        java.util.regex.Matcher linkMatcher = linkPattern.matcher(htmlContent);
-        while (linkMatcher.find()) {
-            String url = linkMatcher.group(1);
-            // Only add URLs from our MinIO endpoint with valid file extensions
-            if (url.startsWith(minioEndpoint) && hasAllowedFileExtension(url)) {
-                fileUrls.add(url);
-            }
-        }
 
         // Pattern to match Markdown images: ![alt](url)
         java.util.regex.Pattern mdImgPattern = java.util.regex.Pattern.compile(

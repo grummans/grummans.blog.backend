@@ -151,7 +151,6 @@ public class AdminPostService {
 
         post.setStatus(STATUS_DRAFT);
         post.setContent(sanitizedHtml);
-        post.setContentHtml(sanitizedHtml);
         updateDraftFields(post, req, isUpdate);
 
         Posts savedPost = postRepository.save(post);
@@ -196,7 +195,6 @@ public class AdminPostService {
             post.setSlug(req.getSlug());
             post.setCategoryId(req.getCategoryId());
             post.setContent(sanitizedHtml);
-            post.setContentHtml(sanitizedHtml);
             post.setMetaTitle(req.getMetaTitle());
             post.setMetaDescription(req.getMetaDescription());
             post.setReadingTimeMinutes(req.getReadingTimeMinutes());
@@ -205,7 +203,6 @@ public class AdminPostService {
         } else {
             post = postMapper.toPost(req);
             post.setContent(sanitizedHtml);
-            post.setContentHtml(sanitizedHtml);
 
             int authorId = usersRepository.findIdByUsername(req.getAuthorUsername());
             post.setAuthorId(authorId);
@@ -269,7 +266,6 @@ public class AdminPostService {
     }
 
     /**
-     * Get post detail for editing (returns same data - TipTap Editor uses contentHtml)
      */
     public PostDTO.Res detailPostForEdit(int postId) {
         return getPostDetail(postId);
@@ -287,9 +283,7 @@ public class AdminPostService {
 
         PostDTO.Res postDTORes = postMapper.toPostDTO(post);
 
-        // Both editing and display use contentHtml (HTML format)
         // TipTap Editor can load and edit HTML directly
-        // Note: The mapper ignores 'content' field, so contentHtml is the only content field returned
 
         Users author = usersRepository.findById(post.getAuthorId())
                 .orElseThrow(() -> new IllegalArgumentException("Author not found with id: " + post.getAuthorId()));
@@ -375,7 +369,6 @@ public class AdminPostService {
         if (!urlMapping.isEmpty()) {
             String updatedContent = fileService.updateContentUrls(sanitizedHtml, urlMapping);
             post.setContent(updatedContent);
-            post.setContentHtml(updatedContent);
             post = postRepository.save(post);
             log.info("Updated content URLs for post {}", post.getId());
         }
@@ -473,7 +466,6 @@ public class AdminPostService {
         post.setSlug(req.getSlug());
         post.setCategoryId(req.getCategoryId());
         post.setContent(sanitizedHtml);
-        post.setContentHtml(sanitizedHtml);
         post.setMetaTitle(req.getMetaTitle());
         post.setMetaDescription(req.getMetaDescription());
         post.setReadingTimeMinutes(req.getReadingTimeMinutes());

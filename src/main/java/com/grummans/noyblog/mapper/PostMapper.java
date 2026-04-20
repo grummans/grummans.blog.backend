@@ -18,7 +18,6 @@ public interface PostMapper {
     Posts toPost(PostDTO.Req postDTO);
 
     // Map Posts entity to Response DTO
-    // Note: content (markdown) is now mapped to support md-editor-v3 on frontend
     // MapStruct resolves boolean property name as "featured" (getter is isFeatured / setFeatured)
     @Mapping(source = "featured", target = "featured")
     PostDTO.Res toPostDTO(Posts post);

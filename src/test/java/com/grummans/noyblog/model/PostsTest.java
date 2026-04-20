@@ -22,7 +22,6 @@ class PostsTest {
                 .title("Test Post")
                 .slug("test-post")
                 .content("Test content")
-                .contentHtml("<p>Test content</p>")
                 .excerpt("Test excerpt")
                 .featuredImageUrl("https://example.com/image.jpg")
                 .authorId(1)
@@ -41,7 +40,6 @@ class PostsTest {
         assertThat(post.getTitle()).isEqualTo("Test Post");
         assertThat(post.getSlug()).isEqualTo("test-post");
         assertThat(post.getContent()).isEqualTo("Test content");
-        assertThat(post.getContentHtml()).isEqualTo("<p>Test content</p>");
         assertThat(post.getExcerpt()).isEqualTo("Test excerpt");
         assertThat(post.getFeaturedImageUrl()).isEqualTo("https://example.com/image.jpg");
         assertThat(post.getAuthorId()).isEqualTo(1);
