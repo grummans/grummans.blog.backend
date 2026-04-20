@@ -90,7 +90,6 @@ class AdminPostServiceTest {
         testPost.setTitle("Test Post");
         testPost.setSlug("test-post");
         testPost.setContent("<p>Test content</p>");
-        testPost.setContentHtml("<p>Test content</p>");
         testPost.setStatus("PUBLISHED");
         testPost.setAuthorId(1);
         testPost.setCategoryId(1);

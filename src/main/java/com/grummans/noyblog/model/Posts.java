@@ -38,8 +38,6 @@ public class Posts {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "content_html", columnDefinition = "TEXT")
-    private String contentHtml;
 
     @Column(name = "excerpt")
     private String excerpt;

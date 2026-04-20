@@ -19,7 +19,7 @@ public class PostDTO {
         private Integer id;            // Post ID (for update draft)
         private String title;
         private String excerpt;
-        private String content;        // HTML content from TipTap Editor (FE sends this)
+        private String content;        // Markdown content (FE sends this)
         private String featuredImageUrl;
         @JsonProperty("isFeatured")
         private boolean isFeatured;    // Need @JsonProperty due to Lombok boolean naming convention
@@ -47,8 +47,7 @@ public class PostDTO {
         @JsonProperty("isFeatured")
         private boolean isFeatured;
         private String featuredImageUrl;
-        private String content;        // Markdown content (NOT returned in API - ignored by mapper)
-        private String contentHtml;    // HTML content for display (this is what FE receives)
+        private String content;        // Markdown content
         private int readingTimeMinutes;
         private String updatedAt;
         private String status;
