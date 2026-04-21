@@ -81,7 +81,6 @@ class ClientPostServiceTest {
                 .title("Test Post")
                 .slug("test-post")
                 .content("Test content")
-                .contentHtml("<p>Test content</p>")
                 .excerpt("Test excerpt")
                 .authorId(1)
                 .categoryId(1)

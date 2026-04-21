@@ -18,8 +18,6 @@ public interface PostMapper {
     Posts toPost(PostDTO.Req postDTO);
 
     // Map Posts entity to Response DTO
-    // Note: content (markdown) is ignored by default, only contentHtml is mapped for display
-    @Mapping(target = "content", ignore = true) // Don't map markdown content to response
     // MapStruct resolves boolean property name as "featured" (getter is isFeatured / setFeatured)
     @Mapping(source = "featured", target = "featured")
     PostDTO.Res toPostDTO(Posts post);
