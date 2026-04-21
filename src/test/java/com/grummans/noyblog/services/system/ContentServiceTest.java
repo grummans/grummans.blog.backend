@@ -48,96 +48,61 @@ class ContentServiceTest {
         }
 
         @Test
-        @DisplayName("Should remove script tags")
-        void shouldRemoveScriptTags() {
+        @DisplayName("Should preserve script tags for Markdown compatibility")
+        void shouldPreserveScriptTags() {
             // Given
-            String html = "<p>Hello</p><script>alert('XSS')</script><p>World</p>";
+            String markdown = "```javascript\nconsole.log('Hello');\n```\n\n<script>alert('test')</script>";
 
             // When
-            String result = contentService.sanitizeHtml(html);
+            String result = contentService.sanitizeHtml(markdown);
 
             // Then
-            assertThat(result)
-                    .isEqualTo("<p>Hello</p><p>World</p>")
-                    .doesNotContain("<script>")
-                    .doesNotContain("alert");
+            assertThat(result).isEqualTo(markdown);
         }
 
         @Test
-        @DisplayName("Should remove script tags with attributes")
-        void shouldRemoveScriptTagsWithAttributes() {
+        @DisplayName("Should preserve javascript protocol in Markdown")
+        void shouldPreserveJavascriptProtocol() {
             // Given
-            String html = "<div><script type=\"text/javascript\">malicious code</script></div>";
+            String markdown = "[Click me](javascript:void(0))";
 
             // When
-            String result = contentService.sanitizeHtml(html);
+            String result = contentService.sanitizeHtml(markdown);
 
             // Then
-            assertThat(result).isEqualTo("<div></div>");
-        }
-
-        @Test
-        @DisplayName("Should remove javascript protocol")
-        void shouldRemoveJavascriptProtocol() {
-            // Given
-            String html = "<a href=\"javascript:alert('XSS')\">Click me</a>";
-
-            // When
-            String result = contentService.sanitizeHtml(html);
-
-            // Then
-            assertThat(result).doesNotContain("javascript:");
+            assertThat(result).isEqualTo(markdown);
         }
 
         @ParameterizedTest
         @CsvSource({
-                "'<img src=\"image.jpg\" onerror=\"alert()\" />', 'onerror='",
-                "'<button onclick=\"doSomething()\">Click</button>', 'onclick='",
-                "'<div onmouseover=\"malicious()\">Hover me</div>', 'onmouseover='"
+                "'![image](image.jpg)', 'Markdown image'",
+                "'[link](https://example.com)', 'Markdown link'",
+                "'# Heading\n\nParagraph with **bold** text', 'Markdown formatting'",
+                "'```java\npublic class Test {}\n```', 'Code block'"
         })
-        @DisplayName("Should remove inline event handlers")
-        void shouldRemoveInlineEventHandlers(String html, String forbidden) {
+        @DisplayName("Should preserve Markdown content")
+        void shouldPreserveMarkdownContent(String markdown, String description) {
             // When
-            String result = contentService.sanitizeHtml(html);
+            String result = contentService.sanitizeHtml(markdown);
 
             // Then
-            assertThat(result).doesNotContain(forbidden);
-        }
-
-        @ParameterizedTest
-        @ValueSource(strings = {
-                "<h1>Title</h1><p>This is a <strong>bold</strong> paragraph.</p><ul><li>Item 1</li><li>Item 2</li></ul>",
-                "<img src=\"https://example.com/image.jpg\" alt=\"Description\" />",
-                "<a href=\"https://example.com\">Link</a>"
-        })
-        @DisplayName("Should preserve safe HTML content")
-        void shouldPreserveSafeHtmlContent(String html) {
-            // When
-            String result = contentService.sanitizeHtml(html);
-
-            // Then
-            assertThat(result).isEqualTo(html);
+            assertThat(result).isEqualTo(markdown);
         }
 
         @Test
-        @DisplayName("Should handle multiple XSS attempts")
-        void shouldHandleMultipleXssAttempts() {
+        @DisplayName("Should preserve HTML tags in Markdown")
+        void shouldPreserveHtmlTagsInMarkdown() {
             // Given
-            String html = "<div onclick=\"alert(1)\">" +
-                    "<script>evil()</script>" +
+            String content = "<div onclick=\"alert(1)\">" +
+                    "<script>test()</script>" +
                     "<a href=\"javascript:void(0)\">link</a>" +
-                    "<img src=\"x\" onerror=\"hack()\">" +
                     "</div>";
 
             // When
-            String result = contentService.sanitizeHtml(html);
+            String result = contentService.sanitizeHtml(content);
 
             // Then
-            assertThat(result)
-                    .doesNotContain("<script>")
-                    .doesNotContain("javascript:")
-                    .doesNotContain("onclick=")
-                    .doesNotContain("onerror=");
+            assertThat(result).isEqualTo(content);
         }
     }
 }

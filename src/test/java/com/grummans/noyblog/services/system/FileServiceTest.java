@@ -47,18 +47,23 @@ class FileServiceTest {
     class ExtractFileUrlsFromContentTests {
 
         @Test
-        @DisplayName("Should extract image URLs from HTML content")
-        void shouldExtractImageUrlsFromHtmlContent() {
+        @DisplayName("Should extract image URLs from Markdown content")
+        void shouldExtractImageUrlsFromMarkdownContent() {
             // Given
-            String htmlContent = """
-                <p>Some text</p>
-                <img src="https://minioconsole.grummans.me/posts/1/content/image1.jpg" />
-                <p>More text</p>
-                <img src="https://minioconsole.grummans.me/posts/1/content/image2.png" />
+            String markdownContent = """
+                # Blog Post
+                
+                Some text with an image:
+                
+                ![Alt text](https://minioconsole.grummans.me/posts/1/content/image1.jpg)
+                
+                More text with another image:
+                
+                ![Another image](https://minioconsole.grummans.me/posts/1/content/image2.png)
                 """;
 
             // When
-            List<String> result = fileService.extractFileUrlsFromContent(htmlContent);
+            List<String> result = fileService.extractFileUrlsFromContent(markdownContent);
 
             // Then
             assertThat(result)
@@ -70,13 +75,50 @@ class FileServiceTest {
         }
 
         @Test
-        @DisplayName("Should return empty list for content without images")
-        void shouldReturnEmptyListForContentWithoutImages() {
+        @DisplayName("Should extract file URLs from Markdown links")
+        void shouldExtractFileUrlsFromMarkdownLinks() {
             // Given
-            String htmlContent = "<p>Some text without images</p>";
+            String markdownContent = """
+                Download the [PDF file](https://minioconsole.grummans.me/posts/1/content/document.pdf)
+                and the [ZIP archive](https://minioconsole.grummans.me/posts/1/content/data.zip)
+                """;
 
             // When
-            List<String> result = fileService.extractFileUrlsFromContent(htmlContent);
+            List<String> result = fileService.extractFileUrlsFromContent(markdownContent);
+
+            // Then
+            assertThat(result)
+                    .hasSize(2)
+                    .contains(
+                            "https://minioconsole.grummans.me/posts/1/content/document.pdf",
+                            "https://minioconsole.grummans.me/posts/1/content/data.zip"
+                    );
+        }
+
+        @Test
+        @DisplayName("Should not extract non-file URLs from Markdown links")
+        void shouldNotExtractNonFileUrlsFromMarkdownLinks() {
+            // Given
+            String markdownContent = """
+                Visit [my website](https://example.com)
+                or check [GitHub](https://github.com)
+                """;
+
+            // When
+            List<String> result = fileService.extractFileUrlsFromContent(markdownContent);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should return empty list for content without file URLs")
+        void shouldReturnEmptyListForContentWithoutFileUrls() {
+            // Given
+            String markdownContent = "# Heading\n\nSome text without file URLs";
+
+            // When
+            List<String> result = fileService.extractFileUrlsFromContent(markdownContent);
 
             // Then
             assertThat(result).isEmpty();
@@ -97,6 +139,22 @@ class FileServiceTest {
         void shouldReturnEmptyListForEmptyContent() {
             // When
             List<String> result = fileService.extractFileUrlsFromContent("");
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should ignore non-MinIO URLs")
+        void shouldIgnoreNonMinioUrls() {
+            // Given
+            String markdownContent = """
+                ![External image](https://example.com/image.jpg)
+                [External link](https://other-site.com/file.pdf)
+                """;
+
+            // When
+            List<String> result = fileService.extractFileUrlsFromContent(markdownContent);
 
             // Then
             assertThat(result).isEmpty();
